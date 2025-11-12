@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utang-Piutang Saya (Personal Finance Tracker)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script> 
+    <style>
+        body { font-family: sans-serif; margin: 0; background-color: #f4f4f9; display: flex; flex-direction: column; min-height: 100vh; }
+        .header { background-color: #007bff; color: white; padding: 15px; text-align: center; }
+        
+        /* PENYESUAIAN UTAMA UNTUK RASIO 9:16 */
+        .container { 
+            max-width: 450px; /* Lebar maksimum yang ideal untuk ponsel/rasio vertikal */
+            width: 95%; /* Memastikan kontainer mengisi hampir seluruh lebar layar */
+            margin: 20px auto; 
+            background: white; 
+            padding: 15px; /* Padding sedikit diperkecil */
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            flex-grow: 1; 
+        }
+        
+        /* Navigasi Footer/Tab */
+        .navigation { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            /* Batasi lebar navigasi agar sama dengan container jika layar lebar */
+            max-width: 450px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #343a40; 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 10px 0; 
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        /* Akhir Penyesuaian Navigasi */
+        
+        .nav-item { 
+            color: #ccc; 
+            text-align: center; 
+            flex-grow: 1;
+            padding: 5px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .nav-item:hover, .nav-item.active { 
+            color: #007bff; 
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .nav-item h4 { margin: 0; font-size: 0.8em; } 
+        
+        /* Gaya Halaman dan Dashboard */
+        .page { display: none; padding-bottom: 70px; } 
+        .page.active { display: block; }
+        h2 { border-bottom: 2px solid #ccc; padding-bottom: 10px; color: #333; margin-top: 0; font-size: 1.3em; } /* Font size sedikit kecil */
+        
+        #mainDashboard {
+            display: flex;
+            flex-wrap: wrap; /* Izinkan wrap jika layar sangat kecil */
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #e9ecef;
+        }
+        .summary-card {
+            flex-basis: 32%; /* Sedikit lebih sempit */
+            padding: 8px 4px; /* Padding vertikal sedikit kecil */
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .summary-card h3 { margin-top: 0; font-size: 0.7em; color: #555; } /* Lebih kecil */
+        .summary-card p { font-size: 1.1em; font-weight: bold; margin: 3px 0 0; } /* Lebih kecil */
+        
+        .card-piutang { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .card-utang { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .card-networth { background-color: #fff3cd; border: 1px solid #ffeeba; }
+
+        /* Gaya untuk Ringkasan Saldo */
+        .saldo-ringkasan {
+            display: grid;
+            grid-template-columns: 1fr; /* Di layar kecil, buat 1 kolom */
+            gap: 10px;
+            text-align: center;
+        }
+        .saldo-item {
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .saldo-item h4 { margin-top: 0; color: #555; font-size: 0.9em; }
+        .saldo-awal { background-color: #e0f7fa; }
+        .saldo-akhir { background-color: #ccffcc; }
+        .net-worth-ringkasan { grid-column: 1 / 2; padding: 15px; font-size: 1.2em; font-weight: bold; background-color: #ffe0b2; border-radius: 8px; margin-top: 10px; }
+        
+        /* Kembali ke 2 kolom di layar yang sedikit lebih lebar */
+        @media (min-width: 400px) {
+            .saldo-ringkasan {
+                grid-template-columns: 1fr 1fr;
+            }
+            .net-worth-ringkasan {
+                grid-column: 1 / 3;
+            }
+        }
+
+        #chartArea {
+            max-width: 100%; 
+            height: 250px; /* Tinggi Chart sedikit dikurangi */
+            margin: 15px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: white;
+        }
+
+        /* Form dan List Styles */
+        form div { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.9em; }
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;
+        }
+        button { 
+            padding: 8px 12px; /* Tombol lebih ramping */
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-right: 8px; 
+        }
+        .transaction { 
+            padding: 12px; /* Padding List lebih kecil */
+            margin-bottom: 8px; 
+            border-left: 4px solid; 
+        }
+        .installments { font-size: 0.8em; margin-top: 4px; padding-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Pencatat Keuangan Pribadi</h1>
+    </div>
+
+    <div class="container">
+        
+        <div id="homePage" class="page active">
+            <h2>Ringkasan Total Aktif 📊</h2>
+            <div id="mainDashboard">
+                </div>
+            
+            <h2>Status Piutang (Grafik) 📈</h2>
+            <div id="chartArea">
+                <canvas id="piutangChart"></canvas>
+            </div>
+        </div>
+        
+        <div id="formPage" class="page">
+            <h2>Tambah Transaksi Baru ➕</h2>
+            <form id="transactionForm">
+                <div>
+                    <label for="type">Tipe Transaksi:</label>
+                    <select id="type" required>
+                        <option value="piutang">Piutang (Orang Lain Berutang Kepada Saya)</option>
+                        <option value="utang">Utang (Saya Berutang Kepada Orang Lain)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="person">Nama Pihak/Orang:</label>
+                    <input type="text" id="person" required>
+                </div>
+                <div>
+                    <label for="principal">Jumlah Pokok (Rp):</label>
+                    <input type="text" id="principal" required onkeyup="formatInputRupiah(this)">
+                </div>
+                <div>
+                    <label for="interestRate">Suku Bunga (% per Bulan):</label>
+                    <input type="number" id="interestRate" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="installmentsCount">Jumlah Cicilan (Bulan):</label>
+                    <input type="number" id="installmentsCount" min="1" value="1" required>
+                </div>
+                <div>
+                    <label for="dueDate">Tanggal Jatuh Tempo Terakhir:</label>
+                    <input type="date" id="dueDate" required>
+                </div>
+                <button type="submit">Catat Transaksi</button>
+            </form>
+        </div>
+
+        <div id="piutangPage" class="page">
+            <h2>Daftar Piutang Aktif Saya ✅</h2>
+            <div id="piutangList">
+                <p>Memuat data piutang...</p>
+            </div>
+        </div>
+
+        <div id="utangPage" class="page">
+            <h2>Daftar Utang Aktif Saya ❌</h2>
+            <div id="utangList">
+                <p>Memuat data utang...</p>
+            </div>
+        </div>
+        
+        <div id="summaryPage" class="page">
+            <h2>Ringkasan Saldo Awal dan Akhir 👑</h2>
+            <div id="balanceSummary" class="saldo-ringkasan">
+                </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <div class="nav-item active" data-page="homePage">
+            <h4>🏠 Beranda</h4>
+        </div>
+        <div class="nav-item" data-page="formPage">
+            <h4>➕ Tambah</h4>
+        </div>
+        <div class="nav-item" data-page="piutangPage">
+            <h4>✅ Piutang</h4>
+        </div>
+        <div class="nav-item" data-page="utangPage">
+            <h4>❌ Utang</h4>
+        </div>
+        <div class="nav-item" data-page="summaryPage">
+            <h4>👑 Ringkasan</h4>
+        </div>
+    </div>
+
+<script>
+    let transactions = [];
+    const form = document.getElementById('transactionForm');
+    const mainDashboard = document.getElementById('mainDashboard');
+    const balanceSummaryContainer = document.getElementById('balanceSummary');
+    const piutangListContainer = document.getElementById('piutangList');
+    const utangListContainer = document.getElementById('utangList');
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    let piutangChartInstance = null; 
+
+    // ===================================
+    // 1. MANAJEMEN DATA & LOCAL STORAGE
+    // ===================================
+
+    function loadTransactions() {
+        const storedTransactions = localStorage.getItem('personalFinanceTracker');
+        if (storedTransactions) {
+            transactions = JSON.parse(storedTransactions); 
+        }
+    }
+
+    function saveTransactions() {
+        localStorage.setItem('personalFinanceTracker', JSON.stringify(transactions));
+    }
+
+    // ===================================
+    // 2. FUNGSI UTILITAS
+    // ===================================
+
+    function formatInputRupiah(inputElement) {
+        let angka = inputElement.value.replace(/\D/g, ''); 
+        if (!angka || angka === '0') {
+            inputElement.value = '';
+            return;
+        }
+        let formatted = new Intl.NumberFormat('id-ID').format(angka);
+        inputElement.value = formatted;
+    }
+
+    function formatCurrency(amount) {
+        const roundedAmount = Math.round(parseFloat(amount)); 
+        return roundedAmount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function calculateTotal(principal, rate, installmentsCount) {
+        const principalAmount = parseFloat(principal);
+        const interestRate = parseFloat(rate) / 100; 
+        const installments = parseInt(installmentsCount);
+        
+        const totalInterest = principalAmount * interestRate * installments;
+        const totalAmount = principalAmount + totalInterest;
+
+        const principalPerInstallment = principalAmount / installments;
+        const interestPerInstallment = totalInterest / installments;
+        const totalPerInstallment = principalPerInstallment + interestPerInstallment;
+        
+        return {
+            totalInterest: totalInterest,
+            totalAmount: totalAmount,
+            totalPerInstallment: totalPerInstallment,
+            principalPerInstallment: principalPerInstallment,
+        };
+    }
+    
+    function getFinancialTotals() {
+        let totalPiutangAwal = 0; 
+        let sisaPiutang = 0;      
+        let totalUtangAwal = 0;   
+        let sisaUtang = 0;        
+
+        transactions.forEach(tx => {
+            const result = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount);
+            const remainingInstallments = tx.installmentsCount - tx.paidInstallments;
+            const remainingTotal = result.totalPerInstallment * remainingInstallments;
+
+            if (tx.type === 'piutang') {
+                totalPiutangAwal += result.totalAmount; 
+                sisaPiutang += remainingTotal;      
+            } else if (tx.type === 'utang') {
+                totalUtangAwal += result.totalAmount;   
+                sisaUtang += remainingTotal;        
+            }
+        });
+        
+        const netWorthAwal = totalPiutangAwal - totalUtangAwal;
+        const netWorthAkhir = sisaPiutang - sisaUtang;
+        
+        return {
+            totalPiutangAwal, sisaPiutang, 
+            totalUtangAwal, sisaUtang,
+            netWorthAwal, netWorthAkhir
+        };
+    }
+
+
+    // ===================================
+    // 3. FUNGSI RENDER (TAMPILAN)
+    // ===================================
+
+    function renderPiutangChart(totalPiutang, sisaPiutang) {
+        const ctx = document.getElementById('piutangChart');
+        const chartArea = document.getElementById('chartArea');
+        
+        if (!ctx) return; 
+
+        if (totalPiutang === 0) {
+             chartArea.style.height = 'auto';
+             chartArea.innerHTML = '<p style="text-align:center; color:#555;">Belum ada Piutang yang dicatat untuk ditampilkan di grafik.</p>';
+             return;
+        }
+        
+        chartArea.style.height = '250px'; 
+        
+        const piutangLunas = totalPiutang - sisaPiutang;
+        
+        if (piutangChartInstance) {
+            piutangChartInstance.destroy();
+        }
+
+        piutangChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Piutang Belum Lunas', 'Piutang Sudah Lunas'],
+                datasets: [{
+                    label: 'Status Piutang',
+                    data: [sisaPiutang, piutangLunas],
+                    backgroundColor: [
+                        'rgba(255, 159, 64, 0.8)', 
+                        'rgba(75, 192, 192, 0.8)'  
+                    ],
+                    borderColor: [
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 10 } } },
+                    title: { display: true, text: 'Persentase Status Piutang', font: { size: 12 } },
+                    datalabels: {
+                        formatter: (value, context) => {
+                            let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            if (sum === 0) return '0%'; 
+                            let percentage = (value * 100 / sum).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#fff', 
+                        font: { weight: 'bold', size: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                let label = context.label || '';
+                                if (context.parsed !== null) {
+                                    label += ': Rp ' + formatCurrency(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderMainDashboard() {
+        const { totalPiutangAwal, sisaPiutang, totalUtangAwal, sisaUtang, netWorthAkhir } = getFinancialTotals();
+
+        mainDashboard.innerHTML = `
+            <div class="summary-card card-piutang">
+                <h3>Aset (Sisa Piutang)</h3>
+                <p>Rp ${formatCurrency(sisaPiutang)}</p>
+                <p style="font-size:0.7em; margin-top: 3px;">(Awal: Rp ${formatCurrency(totalPiutangAwal)})</p>
+            </div>
+            <div class="summary-card card-utang">
+                <h3>Liabilitas (Sisa Utang)</h3>
+                <p>Rp ${formatCurrency(sisaUtang)}</p>
+                <p style="font-size:0.7em; margin-top: 3px;">(Awal: Rp ${formatCurrency(totalUtangAwal)})</p>
+            </div>
+            <div class="summary-card card-networth">
+                <h3>Net Worth (Bersih Aktif)</h3>
+                <p>Rp ${formatCurrency(netWorthAkhir)}</p>
+                <p style="font-size:0.7em; margin-top: 3px; color:${netWorthAkhir >= 0 ? 'green' : 'red'};">${netWorthAkhir >= 0 ? 'Positif' : 'Negatif'}</p>
+            </div>
+        `;
+        
+        renderPiutangChart(totalPiutangAwal, sisaPiutang);
+    }
+    
+    function renderBalanceSummary() {
+        const { totalPiutangAwal, sisaPiutang, totalUtangAwal, sisaUtang, netWorthAwal, netWorthAkhir } = getFinancialTotals();
+        
+        balanceSummaryContainer.innerHTML = `
+            <div class="saldo-item saldo-awal">
+                <h4>Total Piutang Awal (Assets)</h4>
+                <p>Rp ${formatCurrency(totalPiutangAwal)}</p>
+            </div>
+            <div class="saldo-item saldo-awal">
+                <h4>Total Utang Awal (Liabilities)</h4>
+                <p>Rp ${formatCurrency(totalUtangAwal)}</p>
+            </div>
+            <div class="saldo-item saldo-akhir">
+                <h4>Sisa Piutang (Assets Aktif)</h4>
+                <p>Rp ${formatCurrency(sisaPiutang)}</p>
+            </div>
+            <div class="saldo-item saldo-akhir">
+                <h4>Sisa Utang (Liabilities Aktif)</h4>
+                <p>Rp ${formatCurrency(sisaUtang)}</p>
+            </div>
+            <div class="net-worth-ringkasan" style="background-color: #e0f7fa;">
+                Total Net Worth Awal (Saldo Awal)<br>
+                <span style="color:${netWorthAwal >= 0 ? 'green' : 'red'};">Rp ${formatCurrency(netWorthAwal)}</span>
+            </div>
+            <div class="net-worth-ringkasan" style="background-color: #ccffcc;">
+                Sisa Net Worth (Saldo Akhir Aktif)<br>
+                <span style="color:${netWorthAkhir >= 0 ? 'green' : 'red'};">Rp ${formatCurrency(netWorthAkhir)}</span>
+            </div>
+        `;
+    }
+
+    function renderTransactionList(type, container) {
+        container.innerHTML = ''; 
+        const filteredTransactions = transactions.filter(tx => tx.type === type);
+
+        if (filteredTransactions.length === 0) {
+            container.innerHTML = `<p>Belum ada transaksi ${type} yang dicatat.</p>`;
+            return;
+        }
+
+        filteredTransactions.forEach((tx) => {
+            const originalIndex = transactions.findIndex(t => t === tx);
+            
+            const result = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount);
+            const statusClass = tx.type === 'utang' ? 'utang' : 'piutang';
+            
+            const transactionDiv = document.createElement('div');
+            transactionDiv.classList.add('transaction', statusClass);
+            
+            const formattedDueDate = new Date(tx.dueDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const remainingInstallments = tx.installmentsCount - tx.paidInstallments;
+            const remainingTotal = result.totalPerInstallment * remainingInstallments;
+
+            transactionDiv.innerHTML = `
+                <p><strong>${tx.type === 'utang' ? 'UTANG kepada' : 'PIUTANG dari'} ${tx.person}</strong></p>
+                <p>Pokok: Rp ${formatCurrency(tx.principal)}</p>
+                <p>Total Bunga: Rp ${formatCurrency(result.totalInterest)}</p>
+                <p><strong>TOTAL AKHIR: Rp ${formatCurrency(result.totalAmount)}</strong></p>
+                
+                <div class="installments">
+                    Cicilan (${tx.installmentsCount}x): 
+                    <strong>Rp ${formatCurrency(result.totalPerInstallment)}</strong> per bulan.
+                </div>
+                
+                <p>Dibayar: ${tx.paidInstallments} dari ${tx.installmentsCount} cicilan</p>
+                <p>Sisa: Rp ${formatCurrency(remainingTotal)} (${remainingInstallments} cicilan)</p>
+                
+                <p class="due-date">Jatuh Tempo Terakhir: ${formattedDueDate}</p>
+                
+                ${remainingInstallments > 0 ? `<button onclick="payInstallment(${originalIndex})">Bayar Cicilan</button>` : ''}
+                <button onclick="markPaid(${originalIndex})" style="background-color: #6c757d;">Tandai Lunas Penuh</button>
+            `;
+            container.appendChild(transactionDiv);
+        });
+    }
+
+    // ===================================
+    // 4. MANAJEMEN APLIKASI (Logic)
+    // ===================================
+
+    function payInstallment(index) {
+        if (transactions[index].paidInstallments < transactions[index].installmentsCount) {
+            transactions[index].paidInstallments++;
+            alert(`Cicilan ke-${transactions[index].paidInstallments} untuk ${transactions[index].person} berhasil dibayar.`);
+            saveTransactions();
+            refreshAllPagesAndCurrentView();
+        } else {
+            alert(`Semua cicilan untuk ${transactions[index].person} sudah lunas.`);
+        }
+    }
+
+    function markPaid(index) {
+        if (confirm(`Apakah Anda yakin ingin menandai transaksi ${transactions[index].person} lunas penuh? Ini akan menghapusnya dari daftar aktif.`)) {
+            alert(`Transaksi ${transactions[index].person} berhasil ditandai Lunas Penuh!`);
+            transactions.splice(index, 1); 
+            saveTransactions();
+            refreshAllPagesAndCurrentView();
+        }
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const principalFormatted = document.getElementById('principal').value;
+        const principalClean = principalFormatted.replace(/\./g, ''); 
+        
+        const newTransaction = {
+            type: document.getElementById('type').value,
+            person: document.getElementById('person').value,
+            principal: principalClean, 
+            interestRate: document.getElementById('interestRate').value,
+            installmentsCount: parseInt(document.getElementById('installmentsCount').value), 
+            dueDate: document.getElementById('dueDate').value,
+            date: new Date().toISOString().slice(0, 10), 
+            paidInstallments: 0 
+        };
+        
+        if (!newTransaction.principal || parseFloat(newTransaction.principal) < 1 || newTransaction.installmentsCount < 1) {
+            alert("Jumlah Pokok dan Jumlah Cicilan harus valid.");
+            return;
+        }
+
+        transactions.push(newTransaction);
+        saveTransactions(); 
+        form.reset(); 
+        alert("Transaksi berhasil dicatat!");
+        refreshAllPagesAndCurrentView();
+        showPage('homePage'); // Kembali ke halaman Beranda
+    });
+    
+    // ===================================
+    // 5. MANAJEMEN MULTI-PAGE
+    // ===================================
+    
+    function showPage(pageId) {
+        const pages = document.querySelectorAll('.page');
+        const currentNav = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+
+        pages.forEach(page => page.classList.remove('active'));
+        navItems.forEach(nav => nav.classList.remove('active'));
+
+        document.getElementById(pageId).classList.add('active');
+        if (currentNav) {
+            currentNav.classList.add('active');
+        }
+
+        // Render data sesuai halaman
+        if (pageId === 'homePage') {
+            renderMainDashboard(); 
+        } else if (pageId === 'piutangPage') {
+            renderTransactionList('piutang', piutangListContainer);
+        } else if (pageId === 'utangPage') {
+            renderTransactionList('utang', utangListContainer);
+        } else if (pageId === 'summaryPage') {
+             renderBalanceSummary();
+        }
+    }
+
+    // Listener untuk Navigasi Footer
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageId = item.getAttribute('data-page');
+            showPage(pageId);
+        });
+    });
+
+    function refreshAllPagesAndCurrentView() {
+        // Panggil showPage untuk me-refresh halaman yang sedang aktif
+        const activePageId = document.querySelector('.page.active').id;
+        showPage(activePageId); 
+    }
+    
+    // INISIALISASI APLIKASI
+    loadTransactions(); 
+    showPage('homePage'); 
+</script>
+
+</body>
+</html>
