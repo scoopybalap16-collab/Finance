@@ -112,13 +112,17 @@
         background-color: rgba(0,0,0,0.5); 
     }
     #sideMenuContent {
-        width: 75%; /* Lebar 100% dari permintaan sebelumnya */
+        width: 75%; /* Lebih kecil agar ada area klik di luar */
+        max-width: 300px;
         height: 100%; 
         background-color: var(--card-bg); 
         padding: 20px 0; 
         box-shadow: 4px 0 12px rgba(0,0,0,0.15);
         transform: translateX(-100%); 
         transition: transform 0.3s ease-out;
+    }
+    #sideMenuModal.open #sideMenuContent {
+        transform: translateX(0);
     }
     .menu-item {
         /* PENTING: Padding vertikal lebih besar agar mudah dijangkau */
@@ -322,7 +326,7 @@
     }
 
     /* ---------------------------------- */
-    /* GAYA MODAL (TETAP) */
+    /* GAYA MODAL (TETAP & BARU) */
     /* ---------------------------------- */
     .modal-detail-row {
         display: flex;
@@ -348,6 +352,52 @@
         align-items: center; 
     }
     
+    /* GAYA UNTUK MODAL INPUT TANGGAL CICILAN */
+    #paymentDateModal {
+        display: none; 
+        position: fixed; 
+        z-index: 1002; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        height: 100%; 
+        background-color: rgba(0,0,0,0.6); 
+        align-items: center; 
+        justify-content: center;
+    }
+    #paymentDateContent {
+        background-color: var(--card-bg);
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 350px;
+        box-shadow: var(--shadow-elevation);
+    }
+    #paymentDateContent input[type="date"] {
+        padding: 12px;
+        margin-bottom: 15px;
+        background-color: var(--light-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1em;
+    }
+    .payment-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .payment-modal-actions button {
+        margin-top: 0;
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+    .payment-modal-actions #confirmPaymentBtn {
+        background-color: var(--success-color);
+    }
+    .payment-modal-actions #cancelPaymentBtn {
+        background-color: var(--text-muted);
+    }
+
     /* ---------------------------------- */
     /* GAYA FAB (BARU/MODIFIKASI) */
     /* ---------------------------------- */
@@ -524,7 +574,7 @@
         overflow: auto; 
         background-color: rgba(0,0,0,0.6); 
     ">
-        <div style="
+        <div id="detailModalContent" style="
             background-color: var(--card-bg);
             margin: 10% auto; 
             padding: 20px;
@@ -549,6 +599,19 @@
         </div>
     </div>
     
+    <div id="paymentDateModal">
+        <div id="paymentDateContent">
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Catat Tanggal Pembayaran</h3>
+            <p id="paymentAmountDisplay" style="font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: var(--primary-color);">Rp 0</p>
+            <label for="datePaidInput">Tanggal Pembayaran:</label>
+            <input type="date" id="datePaidInput" required>
+            <div class="payment-modal-actions">
+                <button id="cancelPaymentBtn" onclick="closePaymentModal()">BATAL</button>
+                <button id="confirmPaymentBtn" >OKE</button>
+            </div>
+        </div>
+    </div>
+
     <button id="fabAddTransaction" onclick="navigateTo('formPage')">+</button>
 
     <script>
@@ -558,7 +621,7 @@
     const utangListContainer = document.getElementById('utangList');
     const historyListContainer = document.getElementById('historyList'); 
     
-    // VARIABEL BARU UNTUK MENU SAMPING
+    // VARIABEL UNTUK MENU SAMPING
     const menuToggle = document.getElementById('menuToggle');
     const sideMenuModal = document.getElementById('sideMenuModal');
     const sideMenuContent = document.getElementById('sideMenuContent');
@@ -570,6 +633,17 @@
     const startDateInput = document.getElementById('startDate'); 
     const finalDueDateDisplay = document.getElementById('finalDueDateDisplay'); 
     const estimateDiv = document.getElementById('installmentEstimate');
+    
+    // VARIABEL MODAL BARU
+    const detailModal = document.getElementById('transactionDetailModal');
+    const detailModalContent = document.getElementById('detailModalContent');
+    const paymentModal = document.getElementById('paymentDateModal');
+    const datePaidInput = document.getElementById('datePaidInput');
+    const paymentAmountDisplay = document.getElementById('paymentAmountDisplay');
+    const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+    
+    let currentTxId = null;
+    let currentInstallmentAmount = 0;
 
     let piutangChartInstance = null; 
 
@@ -720,13 +794,21 @@
         }
 
         const startDate = new Date(startDateValue);
+        // Tambahkan satu hari agar perhitungan bulan menjadi akurat
+        startDate.setDate(startDate.getDate() + 1); 
+        
         if (isNaN(startDate)) {
             finalDueDateDisplay.textContent = 'Tanggal mulai tidak valid.';
             return '';
         }
         
         const finalDueDate = new Date(startDate);
-        finalDueDate.setMonth(finalDueDate.getMonth() + installments); 
+        // Hapus 1 bulan karena setMonth akan menghitung dari bulan 0 (dimana cicilan pertama sudah jatuh tempo)
+        finalDueDate.setMonth(finalDueDate.getMonth() + installments - 1); 
+        
+        // Atur kembali tanggal ke 1 sebelum menampilkan (optional, to represent end of month or start of next period)
+        const dayOfMonth = new Date(startDateValue).getDate();
+        finalDueDate.setDate(dayOfMonth);
 
         const formattedDate = finalDueDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
         
@@ -736,7 +818,7 @@
     }
     
     function calculateNextDueDate(tx) {
-         const dateString = tx.startDate || tx.date;
+         const dateString = tx.startDate;
          
          if (tx.status !== 'aktif' || !dateString) return null;
 
@@ -744,10 +826,16 @@
          if (paidCount >= tx.installmentsCount) return null; 
 
          const startDate = new Date(dateString); 
+         // Tambahkan satu hari agar perhitungan bulan menjadi akurat
+         startDate.setDate(startDate.getDate() + 1); 
          
          // Hitung tanggal jatuh tempo cicilan berikutnya
          const nextDueDate = new Date(startDate);
-         nextDueDate.setMonth(nextDueDate.getMonth() + paidCount + 1); 
+         nextDueDate.setMonth(nextDueDate.getMonth() + paidCount); 
+         
+         // Atur kembali tanggal ke tanggal mulai pinjam
+         const dayOfMonth = new Date(tx.startDate).getDate();
+         nextDueDate.setDate(dayOfMonth);
 
          return nextDueDate.toISOString().split('T')[0]; 
     }
@@ -759,6 +847,8 @@
         today.setHours(0, 0, 0, 0); 
         
         const due = new Date(dueDate);
+        // Perbaiki karena input date memberikan tanggal 1 hari sebelumnya saat konversi
+        due.setDate(due.getDate() + 1);
         due.setHours(0, 0, 0, 0); 
 
         const diffTime = due - today;
@@ -851,16 +941,20 @@
             let amountDisplay;
             let dueInfo;
             let badge;
+            
+            // Konversi tanggal untuk tampilan
+            const nextDueDisplay = nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-';
+            const completedDateDisplay = tx.dateCompleted ? new Date(tx.dateCompleted).toLocaleDateString('id-ID') : '-';
 
             if (tx.status === 'aktif') {
                 amountDisplay = `<div class="remaining-amount">Rp ${formatCurrency(remainingTotal)}</div>`;
                 dueInfo = `<div class="due-info">Cicilan ke ${paidCount + 1} (${tx.installmentsCount}x)</div>
-                           <div class="due-info">Jatuh Tempo: ${nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-'}</div>`;
+                           <div class="due-info">Jatuh Tempo: ${nextDueDisplay}</div>`;
                 badge = `<span class="status-badge ${dueStatus.class}">${dueStatus.badge}</span>`;
             } else { // Lunas
                 amountDisplay = `<div class="remaining-amount" style="color:var(--success-color);">LUNAS</div>`;
                 dueInfo = `<div class="due-info">Pokok: Rp ${formatCurrency(tx.principal)}</div>
-                           <div class="due-info">Lunas: ${tx.dateCompleted ? new Date(tx.dateCompleted).toLocaleDateString('id-ID') : '-'}</div>`;
+                           <div class="due-info">Lunas: ${completedDateDisplay}</div>`;
                 badge = `<span class="status-badge" style="background-color: #d4edda; color: var(--success-color);">SELESAI</span>`;
             }
             
@@ -913,6 +1007,7 @@
             const remainingTotal = totals.totalPerInstallment * remainingInstallments;
             
             const initials = tx.person.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const nextDueDisplay = nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-';
 
             listHtml += `
                 <div class="transaction-list-item ${tx.type}" data-id="${tx.id}" onclick="showDetailModal('${tx.id}')">
@@ -926,7 +1021,7 @@
                     </div>
                     <div class="amount-section">
                         <div class="remaining-amount" style="color: ${tx.type === 'piutang' ? 'var(--success-color)' : 'var(--danger-color)'};">Rp ${formatCurrency(remainingTotal)}</div>
-                        <div class="due-info">Jatuh Tempo: ${nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-'}</div>
+                        <div class="due-info">Jatuh Tempo: ${nextDueDisplay}</div>
                     </div>
                 </div>
             `;
@@ -1136,8 +1231,10 @@
     function showDetailModal(id) {
         const tx = transactions.find(t => t.id === id);
         if (!tx) return;
+        
+        // Simpan ID transaksi yang sedang dilihat
+        detailModal.dataset.txId = id; 
 
-        const modal = document.getElementById('transactionDetailModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalContent = document.getElementById('modalContent');
         const modalActions = document.getElementById('modalActions');
@@ -1147,6 +1244,9 @@
         const remainingInstallments = tx.installmentsCount - paidCount;
         const remainingTotal = totals.totalPerInstallment * remainingInstallments;
         const nextDueDate = calculateNextDueDate(tx);
+        
+        const nextDueDisplay = nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-';
+
 
         modalTitle.textContent = `${tx.type === 'piutang' ? 'Piutang' : 'Utang'} dengan ${tx.person}`;
         
@@ -1155,7 +1255,7 @@
             ? tx.paymentHistory.map((p, index) => {
                 const isLast = index === tx.paymentHistory.length - 1;
                 const deleteButton = isLast && tx.status === 'aktif'
-                    ? `<span style="color: var(--danger-color); cursor: pointer; font-size: 0.9em; margin-left: 10px;" onclick="cancelLastPayment('${tx.id}')"> [Batalkan]</span>`
+                    ? `<span style="color: var(--danger-color); cursor: pointer; font-size: 0.9em; margin-left: 10px;" onclick="cancelLastPayment('${tx.id}'); event.stopPropagation();"> [Batalkan]</span>`
                     : '';
                 
                 return `
@@ -1179,7 +1279,7 @@
             </div>
             ${tx.status === 'aktif' ? `
                 <div class="modal-detail-row"><span>Sisa Cicilan:</span> <strong>${remainingInstallments} dari ${tx.installmentsCount}</strong></div>
-                <div class="modal-detail-row"><span>Jatuh Tempo Cicilan Berikut:</span> <strong>${nextDueDate ? new Date(nextDueDate).toLocaleDateString('id-ID') : '-'}</strong></div>
+                <div class="modal-detail-row"><span>Jatuh Tempo Cicilan Berikut:</span> <strong>${nextDueDisplay}</strong></div>
             ` : ''}
             
             <h3>Riwayat Pembayaran (${paidCount}x)</h3>
@@ -1189,7 +1289,8 @@
         modalActions.innerHTML = '';
         if (tx.status === 'aktif') {
             if (remainingInstallments > 0) {
-                 modalActions.innerHTML += `<button style="background-color: var(--success-color);" onclick="recordPaymentWithDate('${tx.id}', ${totals.totalPerInstallment})">Catat Pembayaran Cicilan (Rp ${formatCurrency(totals.totalPerInstallment)})</button>`;
+                 // Ubah pemicu untuk memanggil modal input tanggal baru
+                 modalActions.innerHTML += `<button style="background-color: var(--success-color);" onclick="openPaymentModal('${tx.id}', ${totals.totalPerInstallment})">Catat Pembayaran Cicilan (Rp ${formatCurrency(totals.totalPerInstallment)})</button>`;
             }
             modalActions.innerHTML += `<button style="background-color: var(--danger-color);" onclick="deleteTransaction('${tx.id}')">Hapus Transaksi</button>`;
         } else {
@@ -1197,28 +1298,54 @@
              modalActions.innerHTML += `<button style="background-color: var(--danger-color);" onclick="deleteTransaction('${tx.id}')">Hapus Transaksi (Riwayat)</button>`;
         }
         
-        modal.style.display = 'block';
-    }
-
-    function closeDetailModal() {
-        document.getElementById('transactionDetailModal').style.display = 'none';
+        detailModal.style.display = 'block';
     }
     
-    function recordPaymentWithDate(id, installmentAmount) {
-        const dateInput = prompt(`Masukkan tanggal pembayaran untuk cicilan sebesar Rp ${formatCurrency(installmentAmount)} (YYYY-MM-DD):`, new Date().toISOString().split('T')[0]);
-
-        if (dateInput === null || dateInput.trim() === '') {
-            return; 
-        }
+    function closeDetailModal() {
+        document.getElementById('transactionDetailModal').style.display = 'none';
+        // Hapus ID transaksi yang sedang dilihat
+        detailModal.dataset.txId = ''; 
+    }
+    
+    // FUNGSI BARU UNTUK MEMBUKA MODAL INPUT TANGGAL
+    function openPaymentModal(id, installmentAmount) {
+        // Tutup modal detail sebentar
+        closeDetailModal(); 
         
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
-            alert('Format tanggal tidak valid. Gunakan format YYYY-MM-DD (contoh: 2025-11-12).');
+        currentTxId = id;
+        currentInstallmentAmount = installmentAmount;
+        
+        paymentAmountDisplay.textContent = `Cicilan sebesar: Rp ${formatCurrency(installmentAmount)}`;
+        // Set tanggal hari ini sebagai default
+        datePaidInput.value = new Date().toISOString().split('T')[0]; 
+        
+        paymentModal.style.display = 'flex'; // Gunakan flex untuk centering
+    }
+    
+    // FUNGSI BARU UNTUK MENUTUP MODAL INPUT TANGGAL
+    function closePaymentModal() {
+        paymentModal.style.display = 'none';
+        
+        // Buka kembali modal detail setelah menutup modal pembayaran
+        if (detailModal.dataset.txId) {
+             showDetailModal(detailModal.dataset.txId);
+        }
+    }
+    
+    // EVENT LISTENER UNTUK TOMBOL OKE DI MODAL PEMBAYARAN
+    confirmPaymentBtn.addEventListener('click', function() {
+        const datePaid = datePaidInput.value;
+        if (!datePaid) {
+            alert('Tanggal pembayaran harus diisi.');
             return;
         }
 
-        recordPayment(id, installmentAmount, dateInput);
-    }
-    
+        if (currentTxId && currentInstallmentAmount) {
+             recordPayment(currentTxId, currentInstallmentAmount, datePaid);
+        }
+    });
+
+    // FUNGSI UNTUK MENCATAT PEMBAYARAN
     function recordPayment(id, installmentAmount, datePaid) {
         const tx = transactions.find(t => t.id === id);
         if (!tx || tx.status !== 'aktif') return;
@@ -1235,7 +1362,8 @@
 
         saveTransactions();
         alert(`Pembayaran cicilan ke-${tx.paymentHistory.length} tanggal ${new Date(datePaid).toLocaleDateString('id-ID')} berhasil dicatat!`);
-        closeDetailModal();
+        
+        closePaymentModal();
         reRenderAllLists();
     }
     
@@ -1274,7 +1402,7 @@
     }
     
     // ===================================
-    // 6. FUNGSI UTAMA & INITIALIZATION (MODIFIKASI: Back Button Logic)
+    // 6. FUNGSI UTAMA & INITIALIZATION
     // ===================================
     
     function reRenderAllLists() {
@@ -1351,31 +1479,75 @@
         }
     }
 
-    /**
-     * Mengatur perilaku tombol kembali.
-     * 1. Jika di halaman selain Beranda, navigasi ke Beranda.
-     * 2. Jika sudah di Beranda, konfirmasi penutupan aplikasi.
-     */
+    // --- LOGIKA TOMBOL KEMBALI & KLIK DI LUAR MODAL (BARU) ---
+    
+    function handleBackKey(event) {
+        // Cek jika ini adalah tombol Escape (untuk desktop/PWA) atau event backbutton (untuk Android/Hybrid)
+        if (event.key === 'Escape' || event.type === 'backbutton') {
+            
+            // PENTING: Mencegah tindakan default browser (misalnya back)
+            if (event.type === 'backbutton') event.preventDefault(); 
+            
+            // Prioritas 1: Tutup Modal Input Tanggal Cicilan
+            if (paymentModal.style.display === 'flex') {
+                closePaymentModal();
+                return; 
+            } 
+            
+            // Prioritas 2: Tutup Modal Detail Transaksi
+            else if (detailModal.style.display === 'block') {
+                closeDetailModal();
+                return; 
+            } 
+            
+            // Prioritas 3: Tutup Menu Samping
+            else if (sideMenuModal.style.display === 'block') {
+                closeSideMenu();
+                return; 
+            }
+            
+            // Prioritas 4: Navigasi/Keluar Aplikasi
+            else {
+                 handleBackButton();
+            }
+        }
+    }
+    
     function handleBackButton() {
         const activePageId = document.querySelector('.page.active')?.id; 
         
+        // Hanya navigasi kembali ke 'homePage' jika tidak di 'homePage'
         if (activePageId && activePageId !== 'homePage') {
-            // Jika bukan di Beranda, kembali ke Beranda dan jangan lanjutkan history.back()
             navigateTo('homePage');
         } else {
-            // Jika sudah di Beranda, tampilkan konfirmasi keluar
+            // Jika sudah di 'homePage', tanyakan untuk keluar
             if (confirm("Apakah Anda yakin ingin keluar dari aplikasi?")) {
-                // Di lingkungan browser/PWA/Webview, history.back() akan menutup
-                // atau di lingkungan Cordova/Capacitor, event backbutton di handle native
-                if (typeof navigator.app !== 'undefined') {
-                    navigator.app.exitApp(); // Hanya untuk Cordova/Phonegap/Capacitor
+                // Di lingkungan Hybrid/Cordova/Capacitor, gunakan kode khusus
+                if (typeof navigator.app !== 'undefined' && typeof navigator.app.exitApp === 'function') {
+                    navigator.app.exitApp(); 
                 } else {
-                    history.back(); // Untuk PWA/Webview biasa
+                    // Di browser/PWA, biarkan tombol back berfungsi (atau kembali ke state sebelumnya)
+                    history.back(); 
                 }
             }
         }
     }
+    
 
+    // Listener untuk klik di luar area modal detail
+    detailModal.addEventListener('click', function(e) {
+        if (e.target.id === 'transactionDetailModal') {
+            closeDetailModal();
+        }
+    });
+    
+    // Listener untuk klik di luar area modal pembayaran
+    paymentModal.addEventListener('click', function(e) {
+        if (e.target.id === 'paymentDateModal') {
+            closePaymentModal();
+        }
+    });
+    
 
     document.addEventListener('DOMContentLoaded', () => {
         loadTransactions();
@@ -1399,39 +1571,34 @@
         // --- INIALISASI FAB ---
         document.getElementById('fabAddTransaction').classList.add('show');
         
-        // --- START LOGIKA TOMBOL KEMBALI BARU ---
+        // --- START LOGIKA TOMBOL KEMBALI & ESCAPE KEY ---
         
-        // Listener untuk browser/PWA (popstate)
         window.addEventListener('popstate', function(event) {
-             // Pastikan side menu tertutup saat tombol back ditekan
              closeSideMenu(); 
              
-             // Dapatkan halaman aktif dari URL hash (jika ada) atau paksa ke home
              const hash = window.location.hash.replace('#', '');
              const targetPage = hash || 'homePage';
              
-             // Navigasi ke halaman yang dituju oleh popstate, atau ke home jika tidak ditemukan
              if (document.getElementById(targetPage)) {
                  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
                  document.getElementById(targetPage).classList.add('active');
-                 // Re-render konten halaman yang baru aktif
                  reRenderAllLists(); 
-             } else if (targetPage === 'homePage') {
-                 // Ini menangani kasus back button yang tidak terkait dengan hash/history
-                 handleBackButton();
              }
         });
 
         // Listener untuk lingkungan Cordova/Capacitor/Webview (backbutton event)
         if (typeof document.addEventListener === 'function') {
-            document.addEventListener('backbutton', handleBackButton, false);
+            // Daftarkan listener 'backbutton' yang akan dipicu oleh gesture kembali Android
+            document.addEventListener('backbutton', handleBackKey, false);
+            // Daftarkan listener 'keydown' untuk tombol Escape (untuk desktop/PWA)
+            document.addEventListener('keydown', handleBackKey);
         }
 
         // Penanganan inisial load berdasarkan URL hash
         const initialPage = window.location.hash.replace('#', '') || 'homePage';
         navigateTo(initialPage);
         
-        // --- END LOGIKA TOMBOL KEMBALI BARU ---
+        // --- END LOGIKA TOMBOL KEMBALI & ESCAPE KEY ---
     });
     </script>
 </body>
