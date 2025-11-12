@@ -9,50 +9,71 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script> 
 <style>
     /* ---------------------------------- */
-    /* GAYA UMUM */
+    /* GAYA UMUM & MOBILE FIRST */
     /* ---------------------------------- */
+    :root {
+        --primary-color: #007bff; /* Biru cerah */
+        --success-color: #28a745; /* Hijau */
+        --danger-color: #dc3545; /* Merah */
+        --warning-color: #ffc107; /* Kuning */
+        --light-bg: #f8f9fa; /* Background halaman */
+        --card-bg: #ffffff; /* Background kartu */
+        --text-dark: #343a40; /* Teks gelap */
+        --text-muted: #6c757d; /* Teks redup */
+        --border-color: #dee2e6;
+        --shadow-elevation: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
     body { 
-        font-family: sans-serif; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         margin: 0; 
-        background-color: #f4f4f9; 
+        background-color: var(--light-bg); 
         display: flex; 
         flex-direction: column; 
         min-height: 100vh; 
+        color: var(--text-dark);
     }
     .header { 
-        background-color: #007bff; 
+        background-color: var(--primary-color); 
         color: white; 
-        padding: 15px; 
+        padding: 18px 15px; 
         text-align: center; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        font-size: 1.1em;
     }
     .container { 
         max-width: 450px; 
         width: 100%; 
         margin: 0 auto; 
-        background: white; 
+        background: var(--card-bg); 
         padding: 15px; 
-        box-shadow: none; 
         flex-grow: 1; 
         overflow-y: auto; 
         -webkit-overflow-scrolling: touch; 
         padding-bottom: 70px; 
     }
-    .page { 
-        display: none; 
-    } 
+    .page { display: none; padding-top: 5px; } 
     .page.active { display: block; }
+    
     h2 { 
-        border-bottom: 2px solid #ccc; 
+        border-bottom: 2px solid var(--border-color); 
         padding-bottom: 10px; 
-        color: #333; 
-        margin-top: 0; 
-        font-size: 1.3em; 
-        margin-bottom: 15px; 
+        color: var(--text-dark); 
+        margin-top: 15px; 
+        font-size: 1.4em; 
+        font-weight: 600;
+        margin-bottom: 20px; 
     } 
+    h3 {
+         font-size: 1.1em;
+         color: var(--text-dark);
+         margin-top: 25px;
+         margin-bottom: 15px;
+         font-weight: 600;
+    }
     
     /* ---------------------------------- */
-    /* PERUBAHAN GAYA NAVIGASI (TAB BAR) */
+    /* GAYA NAVIGASI (TAB BAR) */
     /* ---------------------------------- */
     .navigation { 
         position: fixed; 
@@ -61,17 +82,16 @@
         max-width: 450px; 
         left: 50%;
         transform: translateX(-50%);
-        background-color: white; /* Ubah background menjadi putih */
+        background-color: var(--card-bg); 
         display: flex; 
         justify-content: space-around; 
-        padding: 0; /* Hapus padding vertikal */
-        height: 60px; /* Atur ketinggian */
-        box-shadow: 0 -3px 8px rgba(0,0,0,0.1); /* Tambahkan shadow ke atas */
+        height: 60px; 
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.1); 
         z-index: 10;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--border-color);
     }
     .nav-item { 
-        color: #6c757d; /* Warna teks default abu-abu */
+        color: var(--text-muted); 
         text-align: center; 
         flex-grow: 1;
         display: flex;
@@ -82,164 +102,200 @@
         transition: color 0.3s; 
     }
     .nav-item.active { 
-        color: #007bff; /* Warna teks aktif biru */
+        color: var(--primary-color); 
     }
-    .nav-item h4 { margin: 0; font-size: 0.7em; font-weight: 500;} /* Perkecil teks */
-    .nav-item .icon { font-size: 1.2em; margin-bottom: 3px; }
+    .nav-item h4 { margin: 0; font-size: 0.75em; font-weight: 500;} 
+    .nav-item .icon { font-size: 1.3em; margin-bottom: 3px; }
 
-    /* Gaya khusus tombol Tambah (+) di tengah */
+    /* Tombol Tambah (+) */
     .nav-item[data-page="formPage"] {
         position: relative;
-        top: -15px; /* Angkat tombol ke atas */
-        background-color: #007bff;
+        top: -15px; 
+        background-color: var(--primary-color);
         color: white;
-        width: 50px;
-        height: 50px;
+        width: 55px;
+        height: 55px;
         border-radius: 50%;
-        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
-        font-size: 1.5em;
+        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+        font-size: 1.8em;
+        line-height: 1;
         padding-top: 0;
     }
+    .nav-item[data-page="formPage"] .icon { margin-bottom: 0; }
     .nav-item[data-page="formPage"] h4 { display: none; }
     
     /* ---------------------------------- */
-    /* PERUBAHAN GAYA LIST TRANSAKSI (Utang/Piutang) */
+    /* GAYA DASHBOARD & CARD */
     /* ---------------------------------- */
+    #mainDashboard { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 20px; }
+    .summary-card { 
+        flex-basis: 100%; 
+        padding: 15px; 
+        border-radius: 12px; 
+        text-align: left; 
+        margin-bottom: 12px; 
+        box-shadow: var(--shadow-elevation);
+        transition: all 0.3s;
+    }
+    .summary-card h3 { 
+        margin-top: 0; 
+        font-size: 0.9em; 
+        color: var(--text-dark); 
+        font-weight: 500;
+        margin-bottom: 5px;
+    } 
+    .summary-card p { 
+        font-size: 1.4em; 
+        font-weight: bold; 
+        margin: 0; 
+    } 
+    .card-piutang { background-color: #e6f7ef; border-left: 5px solid var(--success-color); } 
+    .card-utang { background-color: #fcebeb; border-left: 5px solid var(--danger-color); } 
+    .card-networth { background-color: #fff8e1; border-left: 5px solid var(--warning-color); font-size: 1.1em; }
+    
+    /* Layout kolom untuk mobile */
+    @media (min-width: 350px) {
+        .summary-card { flex-basis: 48%; }
+        .card-networth { flex-basis: 100%; margin-top: 5px; }
+    }
+    
+    /* ---------------------------------- */
+    /* GAYA LIST TRANSAKSI */
+    /* ---------------------------------- */
+    .transaction-list-container {
+        border: none; 
+        padding: 0; 
+        border-radius: 0; 
+        background-color: var(--light-bg);
+    }
+    
     .transaction-list-item {
         display: flex;
         align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: var(--card-bg);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         cursor: pointer;
-        transition: background-color 0.1s;
+        transition: transform 0.1s, box-shadow 0.1s;
     }
-    .transaction-list-item:hover {
-        background-color: #f8f9fa;
+    .transaction-list-item:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-    .transaction-list-item:last-child {
-        border-bottom: none;
-    }
+
     .avatar-icon {
-        width: 35px;
-        height: 35px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background-color: #e9ecef;
-        color: #6c757d;
+        color: var(--primary-color);
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1.2em;
-        font-weight: bold;
+        font-size: 1.4em;
+        font-weight: 600;
         margin-right: 15px;
         flex-shrink: 0;
     }
-    .info-section {
-        flex-grow: 1;
-        min-width: 0;
-    }
-    .info-section strong {
-        display: block;
-        font-size: 1.1em;
-        margin-bottom: 2px;
-        color: #333;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .info-section p {
-        margin: 0;
-        font-size: 0.8em;
-        color: #6c757d;
-    }
-    .info-section .status-badge {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 3px;
+    .info-section { flex-grow: 1; min-width: 0; }
+    .info-section strong { font-size: 1.1em; color: var(--text-dark); }
+    .info-section p { font-size: 0.8em; }
+    
+    .status-badge {
+        padding: 3px 8px;
+        border-radius: 12px;
         font-size: 0.7em;
-        font-weight: bold;
+        font-weight: 600;
         margin-right: 5px;
     }
-    .status-active { background-color: #d1ecf1; color: #008080; } /* Biru/Cyan muda */
-    .status-late { background-color: #f8d7da; color: #dc3545; } /* Merah muda/Terlambat */
+    .status-active { background-color: #d1ecf1; color: #008080; } 
+    .status-late { background-color: #f8d7da; color: var(--danger-color); } 
     
-    .amount-section {
-        text-align: right;
-        flex-shrink: 0;
-        margin-left: 10px;
-    }
-    .amount-section .remaining-amount {
-        font-size: 1.1em;
-        font-weight: bold;
-        color: #28a745; /* Hijau untuk piutang (aset) */
-    }
-    .transaction-list-item.utang .amount-section .remaining-amount {
-        color: #dc3545; /* Merah untuk utang (liabilitas) */
-    }
-    .amount-section .due-info {
-        font-size: 0.8em;
-        color: #6c757d;
-        margin-top: 2px;
-    }
+    .amount-section { text-align: right; flex-shrink: 0; margin-left: 10px; }
+    .amount-section .remaining-amount { font-size: 1.2em; font-weight: bold; color: var(--success-color); }
+    .transaction-list-item.utang .amount-section .remaining-amount { color: var(--danger-color); }
+    .amount-section .due-info { font-size: 0.75em; color: var(--text-muted); margin-top: 2px; }
 
-    /* ---------------------------------- */
-    /* GAYA DASHBOARD */
-    /* ---------------------------------- */
-    #mainDashboard { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 15px; padding: 10px; border-radius: 6px; background-color: #e9ecef; }
-    .summary-card { flex-basis: 48%; padding: 15px 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
-    .summary-card h3 { margin-top: 0; font-size: 0.8em; color: #555; } 
-    .summary-card p { font-size: 1.3em; font-weight: bold; margin: 3px 0 0; } 
-    .card-piutang { background-color: #d4edda; border: 1px solid #c3e6cb; } /* Hijau Muda */
-    .card-utang { background-color: #f8d7da; border: 1px solid #f5c6cb; } /* Merah Muda */
-    .card-networth { background-color: #fff3cd; border: 1px solid #ffeeba; flex-basis: 100%; margin-top: 5px; }
-    
     /* ---------------------------------- */
     /* GAYA FORM & CONTROLS */
     /* ---------------------------------- */
     .controls-container {
         margin-bottom: 15px;
-        padding: 5px 0;
-        border-bottom: 1px solid #eee;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
     }
     .search-container input {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 20px;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 25px;
         box-sizing: border-box;
         font-size: 1em;
         margin-bottom: 10px;
+        transition: border-color 0.3s;
     }
+    .search-container input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+    
     .sort-controls {
         display: flex;
         align-items: center;
         gap: 10px;
         font-size: 0.9em;
+        color: var(--text-muted);
     }
     .sort-controls select {
         padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         font-size: 0.9em;
+        background-color: white;
     }
     
+    label {
+         display: block;
+         margin-bottom: 5px;
+         font-weight: 500;
+         color: var(--text-dark);
+         font-size: 0.95em;
+    }
+
     input[type="text"], input[type="number"], input[type="date"], select { 
         width: 100%; 
-        padding: 10px; 
-        border: 1px solid #ddd; 
-        border-radius: 4px; 
+        padding: 12px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
         box-sizing: border-box; 
         font-size: 1em; 
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        background-color: var(--light-bg);
     }
+    
     button { 
-        padding: 10px 15px; 
-        background-color: #007bff; 
+        padding: 12px 18px; 
+        background-color: var(--primary-color); 
         color: white; 
         border: none; 
-        border-radius: 4px; 
+        border-radius: 8px; 
         cursor: pointer; 
-        margin-right: 10px; 
-        font-size: 0.9em; 
+        margin-top: 10px;
+        font-size: 1em; 
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    button:hover {
+         background-color: #0056b3;
+    }
+    
+    /* Gaya untuk tombol Aksi di Modal */
+    #modalActions button {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 10px;
     }
 
     /* ---------------------------------- */
@@ -248,21 +304,31 @@
     .modal-detail-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 5px;
-        border-bottom: 1px dotted #eee;
-        padding-bottom: 3px;
+        margin-bottom: 8px;
+        border-bottom: 1px dotted var(--border-color);
+        padding-bottom: 5px;
         font-size: 0.95em;
     }
     #modalContent .payment-history-list {
         max-height: 150px;
         overflow-y: auto;
+        padding: 5px;
+        border: 1px solid #eee;
+        border-radius: 5px;
+    }
+    #modalContent .payment-history-list div {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px dotted #f1f1f1;
+        font-size: 0.85em;
     }
 </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Pencatat Hutang Piutang</h1>
+        <h1>Pencatat Utang Piutang</h1>
     </div>
 
     <div class="container">
@@ -270,14 +336,15 @@
         <div id="homePage" class="page active">
             <h2>Beranda 📊</h2>
             <div id="mainDashboard"></div>
-            <h2>Status Piutang (Grafik) 📈</h2>
-            <div id="chartArea" style="height: 250px;">
+            
+            <h3 style="margin-top: 25px;">Status Keuangan (Grafik) 📈</h3>
+            <div id="chartArea" style="height: 250px; background-color: white; padding: 10px; border-radius: 12px; box-shadow: var(--shadow-elevation); margin-bottom: 20px;">
                 <canvas id="piutangChart"></canvas>
             </div>
             
-            <h3 style="margin-top: 25px;">Transaksi Aktif Terbaru</h3>
-            <div id="latestTransactions" style="border: 1px solid #ddd; padding: 0 10px; border-radius: 6px;">
-                <p style="text-align: center; color: #6c757d;">Memuat data...</p>
+            <h3>Transaksi Aktif Terbaru</h3>
+            <div id="latestTransactions" class="transaction-list-container">
+                <p style="text-align: center; color: var(--text-muted);">Memuat data...</p>
             </div>
         </div>
         
@@ -292,11 +359,11 @@
                 
                 <div><label for="interestRate">Suku Bunga (% per Bulan):</label><input type="text" id="interestRate" min="0" value="0" required onkeyup="updateInstallmentEstimate()"></div>
                 <div><label for="installmentsCount">Tenor/Jumlah Cicilan (Bulan):</label><input type="number" id="installmentsCount" min="1" value="1" required onchange="updateInstallmentEstimate(); calculateDueDate()"></div>
-                <div id="installmentEstimate"></div>
+                <div id="installmentEstimate" style="padding: 10px; background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; margin-bottom: 15px; display: none;"></div>
                 
-                <div><label>Tanggal Jatuh Tempo Terakhir:</label><p id="finalDueDateDisplay" style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8; border-radius: 4px; margin-top: 0;"></p></div>
+                <div><label>Tanggal Jatuh Tempo Terakhir:</label><p id="finalDueDateDisplay" style="padding: 12px; border: 1px solid #ddd; background-color: #f8f8f8; border-radius: 8px; margin-top: 0;"></p></div>
                 
-                <button type="submit">Catat Transaksi</button>
+                <button type="submit" style="width: 100%;">Catat Transaksi</button>
             </form>
         </div>
 
@@ -313,7 +380,7 @@
                     </select>
                 </div>
             </div>
-            <div id="piutangList" style="border: 1px solid #ddd; padding: 0 15px; border-radius: 6px;"><p>Memuat data piutang...</p></div>
+            <div id="piutangList" class="transaction-list-container"><p>Memuat data piutang...</p></div>
         </div>
 
         <div id="utangPage" class="page">
@@ -329,7 +396,7 @@
                     </select>
                 </div>
             </div>
-            <div id="utangList" style="border: 1px solid #ddd; padding: 0 15px; border-radius: 6px;"><p>Memuat data utang...</p></div>
+            <div id="utangList" class="transaction-list-container"><p>Memuat data utang...</p></div>
         </div>
         
         <div id="historyPage" class="page">
@@ -344,23 +411,27 @@
                     </select>
                 </div>
             </div>
-            <div id="historyList" style="border: 1px solid #ddd; padding: 10px 15px; border-radius: 6px;"><p>Memuat riwayat lunas...</p></div>
+            <div id="historyList" class="transaction-list-container"><p>Memuat riwayat lunas...</p></div>
         </div>
 
         <div id="summaryPage" class="page">
             <h2>Ringkasan & Export Data 👑</h2>
-            <p>Export data transaksi aktif dan lunas ke dalam format CSV (kompatibel dengan Excel) untuk analisis lebih lanjut.</p>
-            <button onclick="exportToCSV()" style="background-color: #28a745;">Export Semua Data ke CSV</button>
             
-            <h3 style="margin-top: 30px;">Ringkasan Saldo Global</h3>
-            <div id="balanceSummary" style="border: 1px solid #ddd; padding: 15px; border-radius: 6px;">
-                <p>Total Piutang (Awal): <strong id="summaryPiutangAwal">Rp 0</strong></p>
-                <p>Sisa Piutang (Aktif): <strong id="summaryPiutangSisa">Rp 0</strong></p>
-                <hr>
-                <p>Total Utang (Awal): <strong id="summaryUtangAwal">Rp 0</strong></p>
-                <p>Sisa Utang (Aktif): <strong id="summaryUtangSisa">Rp 0</strong></p>
-                <hr>
-                <p>Net Worth (Bersih Aktif): <strong id="summaryNetWorth">Rp 0</strong></p>
+            <div style="background-color: #e9ecef; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="margin-top:0;">Export data transaksi aktif dan lunas ke dalam format CSV (kompatibel dengan Excel) untuk analisis lebih lanjut.</p>
+                <button onclick="exportToCSV()" style="background-color: var(--success-color); width: 100%;">Export Semua Data ke CSV</button>
+            </div>
+
+            
+            <h3>Ringkasan Saldo Global</h3>
+            <div id="balanceSummary" style="border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background-color: var(--card-bg);">
+                <div class="modal-detail-row"><span>Total Piutang (Awal):</span> <strong id="summaryPiutangAwal">Rp 0</strong></div>
+                <div class="modal-detail-row"><span>Sisa Piutang (Aktif):</span> <strong id="summaryPiutangSisa">Rp 0</strong></div>
+                <hr style="border: none; border-top: 1px dashed #eee; margin: 10px 0;">
+                <div class="modal-detail-row"><span>Total Utang (Awal):</span> <strong id="summaryUtangAwal">Rp 0</strong></div>
+                <div class="modal-detail-row"><span>Sisa Utang (Aktif):</span> <strong id="summaryUtangSisa">Rp 0</strong></div>
+                <hr style="border: none; border-top: 2px solid var(--border-color); margin: 15px 0;">
+                <div class="modal-detail-row" style="font-size: 1.1em; font-weight: bold; padding-bottom: 0; border-bottom: none;"><span>Net Worth (Bersih Aktif):</span> <strong id="summaryNetWorth">Rp 0</strong></div>
             </div>
         </div>
 
@@ -397,26 +468,26 @@
         width: 100%; 
         height: 100%; 
         overflow: auto; 
-        background-color: rgba(0,0,0,0.4); 
+        background-color: rgba(0,0,0,0.6); 
     ">
         <div style="
-            background-color: #fefefe;
-            margin: 15% auto; 
+            background-color: var(--card-bg);
+            margin: 10% auto; 
             padding: 20px;
             border: 1px solid #888;
             width: 90%; 
             max-width: 400px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            border-radius: 12px;
+            box-shadow: var(--shadow-elevation);
         ">
             <span onclick="closeDetailModal()" style="
                 color: #aaa; 
                 float: right; 
-                font-size: 28px; 
+                font-size: 32px; 
                 font-weight: bold;
                 cursor: pointer;
             ">&times;</span>
-            <h3 id="modalTitle">Detail Transaksi</h3>
+            <h3 id="modalTitle" style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color);">Detail Transaksi</h3>
             <div id="modalContent">
                 </div>
             <div id="modalActions" style="margin-top: 15px;">
@@ -597,6 +668,7 @@
 
          const startDate = new Date(dateString); 
          
+         // Hitung tanggal jatuh tempo cicilan berikutnya
          const nextDueDate = new Date(startDate.getFullYear(), startDate.getMonth() + paidCount + 1, startDate.getDate());
 
          return nextDueDate;
@@ -626,7 +698,7 @@
     }
     
     // ===================================
-    // 3. FUNGSI EXPORT TO CSV (BARU)
+    // 3. FUNGSI EXPORT TO CSV
     // ===================================
     
     function exportToCSV() {
@@ -685,9 +757,9 @@
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
         link.setAttribute("download", "data_utang_piutang_" + new Date().toISOString().slice(0, 10) + ".csv");
-        document.body.appendChild(link); // Perlu ditambahkan untuk kompatibilitas
-        link.click(); // Unduh file
-        document.body.removeChild(link); // Hapus elemen
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link);
         alert("Data berhasil di-export ke CSV!");
     }
 
@@ -704,28 +776,31 @@
          document.getElementById('summaryPiutangSisa').textContent = `Rp ${formatCurrency(sisaPiutang)}`;
          document.getElementById('summaryUtangAwal').textContent = `Rp ${formatCurrency(totalUtangAwal)}`;
          document.getElementById('summaryUtangSisa').textContent = `Rp ${formatCurrency(sisaUtang)}`;
-         document.getElementById('summaryNetWorth').textContent = `Rp ${formatCurrency(netWorthAkhir)}`;
-         document.getElementById('summaryNetWorth').style.color = netWorthAkhir >= 0 ? 'green' : 'red';
          
+         const netWorthElement = document.getElementById('summaryNetWorth');
+         netWorthElement.textContent = `Rp ${formatCurrency(netWorthAkhir)}`;
+         netWorthElement.style.color = netWorthAkhir >= 0 ? '#28a745' : '#dc3545';
+
          // Update dashboard di homePage
          const mainDashboard = document.getElementById('mainDashboard');
          mainDashboard.innerHTML = `
             <div class="summary-card card-piutang">
                 <h3>Total Piutang Aktif</h3>
                 <p>Rp ${formatCurrency(sisaPiutang)}</p>
-                <p style="font-size:0.7em; margin-top: 3px;">(Awal: Rp ${formatCurrency(totalPiutangAwal)})</p>
+                <p style="font-size:0.7em; margin-top: 3px; color: var(--text-muted);">(Awal: Rp ${formatCurrency(totalPiutangAwal)})</p>
             </div>
             <div class="summary-card card-utang">
                 <h3>Total Utang Aktif</h3>
                 <p>Rp ${formatCurrency(sisaUtang)}</p>
-                <p style="font-size:0.7em; margin-top: 3px;">(Awal: Rp ${formatCurrency(totalUtangAwal)})</p>
+                <p style="font-size:0.7em; margin-top: 3px; color: var(--text-muted);">(Awal: Rp ${formatCurrency(totalUtangAwal)})</p>
             </div>
             <div class="summary-card card-networth">
                 <h3>Net Worth (Bersih Aktif)</h3>
-                <p>Rp ${formatCurrency(netWorthAkhir)}</p>
-                <p style="font-size:0.7em; margin-top: 3px; color:${netWorthAkhir >= 0 ? 'green' : 'red'};">${netWorthAkhir >= 0 ? 'Positif' : 'Negatif'}</p>
+                <p style="color: ${netWorthAkhir >= 0 ? '#28a745' : '#dc3545'};">Rp ${formatCurrency(netWorthAkhir)}</p>
+                <p style="font-size:0.7em; margin-top: 3px; color: var(--text-muted);">${netWorthAkhir >= 0 ? 'Positif' : 'Negatif'}</p>
             </div>
         `;
+         renderPiutangChart(sisaPiutang, sisaUtang);
     }
     
     function renderLatestTransactions() {
@@ -738,7 +813,7 @@
                                      .slice(0, 5); // Ambil 5 transaksi terbaru
 
         if (latestTx.length === 0) {
-             container.innerHTML = `<p style="text-align: center; color: #6c757d; padding: 10px 0;">Tidak ada transaksi aktif.</p>`;
+             container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 10px 0;">Tidak ada transaksi aktif.</p>`;
              return;
         }
 
@@ -765,7 +840,7 @@
                 
                 statusText = 'Berjalan';
                 statusClass = 'status-active';
-                dueInfo = `Jatuh tempo dalam ${diffDays} hari`;
+                dueInfo = `Jatuh tempo dlm ${diffDays} hari`;
             } else {
                  statusText = 'Berjalan';
                  statusClass = 'status-active';
@@ -844,7 +919,7 @@
     }
 
 
-    // FUNGSI RENDER LIST UTAMA (Aktif) - DIUBAH TAMPILANNYA
+    // FUNGSI RENDER LIST UTAMA (Aktif)
     function renderTransactionList(type, container, searchTerm, sortKey) {
         container.innerHTML = ''; 
         
@@ -861,7 +936,7 @@
 
 
         if (transactionsToDisplay.length === 0) {
-            container.innerHTML = `<p style="text-align: center; color: #555; padding: 10px 0;">${searchTerm ? `Tidak ditemukan transaksi '${type}' dengan nama "${searchTerm}".` : `Belum ada transaksi ${type} yang aktif dicatat.`}</p>`;
+            container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 10px 0;">${searchTerm ? `Tidak ditemukan transaksi '${type}' dengan nama "${searchTerm}".` : `Belum ada transaksi ${type} yang aktif dicatat.`}</p>`;
             return;
         }
 
@@ -889,7 +964,7 @@
                 
                 statusText = 'Berjalan';
                 statusClass = 'status-active';
-                dueInfo = `Jatuh tempo dalam ${diffDays} hari`;
+                dueInfo = `Jatuh tempo dlm ${diffDays} hari`;
             } else {
                  statusText = 'Berjalan';
                  statusClass = 'status-active';
@@ -919,7 +994,7 @@
         });
     }
     
-    // FUNGSI RENDER RIWAYAT LUNAS (Tetap Sama)
+    // FUNGSI RENDER RIWAYAT LUNAS
     function renderHistoryList(searchTerm, sortKey) {
         historyListContainer.innerHTML = '';
         
@@ -935,7 +1010,7 @@
         historyTransactions = sortTransactions(historyTransactions, sortKey);
 
         if (historyTransactions.length === 0) {
-            historyListContainer.innerHTML = `<p style="text-align: center; color: #555; padding: 10px 0;">${searchTerm ? `Tidak ditemukan riwayat lunas dengan nama "${searchTerm}".` : `Belum ada riwayat transaksi lunas.`}</p>`;
+            historyListContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 10px 0;">${searchTerm ? `Tidak ditemukan riwayat lunas dengan nama "${searchTerm}".` : `Belum ada riwayat transaksi lunas.`}</p>`;
             return;
         }
         
@@ -947,29 +1022,28 @@
             
             const transactionDiv = document.createElement('div');
             transactionDiv.classList.add('transaction-list-item', statusClass); 
-            transactionDiv.style.opacity = 0.7; // Tampilan lunas lebih redup
+            transactionDiv.style.opacity = 0.85; 
             
             const formattedDate = new Date(tx.lunasDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
 
             transactionDiv.innerHTML = `
-                <div class="avatar-icon">L</div>
+                <div class="avatar-icon" style="background-color: #e2e3e5; color: #6c757d;">L</div>
                 <div class="info-section">
                     <strong>${tx.person} (${tx.type === 'utang' ? 'Utang' : 'Piutang'})</strong>
                     <p>
-                        <span class="status-badge" style="background-color: #e2e3e5; color: #6c757d;">LUNAS</span>
+                        <span class="status-badge" style="background-color: #e2e3e5; color: #6c757d; font-weight: bold;">LUNAS</span>
                         Pokok: Rp ${formatCurrency(tx.principal)}
                     </p>
                 </div>
                 <div class="amount-section">
-                    <span class="remaining-amount" style="color:#6c757d;">Rp ${formatCurrency(result.totalAmount)}</span>
-                    <p class="due-info">Lunas: ${formattedDate}</p>
-                    <button onclick="deleteTransaction(${index})" style="background-color: #dc3545; padding: 3px 6px; font-size: 0.7em; margin: 5px 0 0; display: block; float: right;">Hapus</button>
+                    <span class="remaining-amount" style="color:var(--text-muted);">Rp ${formatCurrency(result.totalAmount)}</span>
+                    <p class="due-info">${formattedDate}</p>
+                    <button onclick="deleteTransaction(${index})" style="background-color: var(--danger-color); padding: 3px 6px; font-size: 0.7em; margin: 5px 0 0; display: block; float: right; width: auto;">Hapus</button>
                 </div>
             `;
             historyListContainer.appendChild(transactionDiv);
         });
     }
-
 
     function filterTransactionList(pageType) {
         let container;
@@ -1005,7 +1079,65 @@
             renderTransactionList(listType, container, searchTerm, sortKey);
         }
     }
-
+    
+    function renderPiutangChart(piutangAmount, utangAmount) {
+        const ctx = document.getElementById('piutangChart').getContext('2d');
+        if (piutangChartInstance) {
+            piutangChartInstance.destroy();
+        }
+        
+        piutangChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sisa Piutang (Aktif)', 'Sisa Utang (Aktif)'],
+                datasets: [{
+                    data: [piutangAmount, utangAmount],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                 responsive: true,
+                 maintainAspectRatio: false,
+                 plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                         callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += 'Rp ' + formatCurrency(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        formatter: (value) => {
+                            // Tampilkan hanya jika nilainya signifikan
+                            if (value > 0) {
+                                return 'Rp ' + formatCurrency(value);
+                            } else {
+                                return '';
+                            }
+                        },
+                        color: '#fff', // Warna teks putih untuk kontras
+                        font: {
+                            weight: 'bold',
+                            size: 10
+                        },
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)' // Tambahkan shadow agar terlihat jelas
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
 
     // ===================================
     // 5. MANAJEMEN APLIKASI (Logic & Modal)
@@ -1027,21 +1159,20 @@
         
         const formattedFinalDueDate = finalDueDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
         
-        const lastPaymentIndex = paidCount - 1;
         const delayDays = calculateDelay(tx);
         const delayIndicator = delayDays > 0 ? `<span class="status-badge status-late" style="margin-left: 10px;">Terlambat ${delayDays} hari</span>` : '';
         
         let paymentHistoryHTML = '';
         if (paidCount > 0) {
-            paymentHistoryHTML += '<h4 style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 15px; font-size: 1em;">Riwayat Pembayaran</h4>';
+            paymentHistoryHTML += '<h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 15px; font-size: 1em;">Riwayat Pembayaran</h4>';
             paymentHistoryHTML += '<div class="payment-history-list">';
             tx.paymentHistory.forEach((payment, idx) => {
                 const formattedPaymentDate = new Date(payment.date).toLocaleDateString('id-ID');
-                const isLast = idx === lastPaymentIndex && tx.status === 'aktif';
+                const isLast = idx === paidCount - 1 && tx.status === 'aktif';
                 paymentHistoryHTML += `
-                    <div>
+                    <div style="color: var(--text-dark);">
                         <span>Cicilan ke-${idx + 1} (${formattedPaymentDate})</span>
-                        ${isLast ? `<button onclick="undoPayment(${index}); closeDetailModal()" style="background-color: #ffc107; color: #333; padding: 3px 6px; font-size: 0.7em; margin: 0;">Cancel</button>` : ''}
+                        ${isLast ? `<button onclick="undoPayment(${index}); closeDetailModal()" style="background-color: var(--warning-color); color: var(--text-dark); padding: 3px 6px; font-size: 0.7em; margin: 0; width: auto;">Batalkan</button>` : ''}
                     </div>
                 `;
             });
@@ -1058,7 +1189,7 @@
                 <span>Suku Bunga (${tx.interestRate}%/bln):</span>
                 <strong>Rp ${formatCurrency(result.totalInterest)}</strong>
             </div>
-            <div class="modal-detail-row" style="margin-top: 10px; font-size: 1.1em; font-weight: bold; border-top: 1px solid #ddd;">
+            <div class="modal-detail-row" style="margin-top: 10px; font-size: 1.1em; font-weight: bold; border-top: 1px solid var(--border-color);">
                 <span>TOTAL AKHIR:</span>
                 <strong>Rp ${formatCurrency(result.totalAmount)}</strong>
             </div>
@@ -1081,15 +1212,40 @@
             </div>
             <div class="modal-detail-row">
                 <span>Sisa Pembayaran:</span>
-                <strong style="color: ${remainingTotal > 0 ? '#dc3545' : '#28a745'};">Rp ${formatCurrency(remainingTotal)} (${remainingInstallments} cicilan)</strong>
+                <strong style="color: ${remainingTotal > 0 ? 'var(--danger-color)' : 'var(--success-color)'};">Rp ${formatCurrency(remainingTotal)} (${remainingInstallments} cicilan)</strong>
             </div>
             ${paymentHistoryHTML}
         `;
+        
+        // Hapus semua tombol aksi lama
+        document.getElementById('modalActions').innerHTML = '';
 
-        document.getElementById('modalActions').innerHTML = `
-            ${tx.status === 'aktif' && remainingInstallments > 0 ? `<button onclick="payInstallment(${index}); closeDetailModal()">Bayar Cicilan</button>` : ''}
-            ${tx.status === 'aktif' ? `<button onclick="markPaid(${index}); closeDetailModal()" style="background-color: #6c757d;">Tandai Lunas Penuh</button>` : ''}
-        `;
+        if (tx.status === 'aktif') {
+            if (remainingInstallments > 0) {
+                 // Tombol Bayar Cicilan
+                 const payButton = document.createElement('button');
+                 payButton.textContent = `Bayar Cicilan ke ${paidCount + 1}`;
+                 payButton.style.backgroundColor = tx.type === 'piutang' ? 'var(--success-color)' : 'var(--primary-color)';
+                 payButton.onclick = () => { payInstallment(index); closeDetailModal(); };
+                 document.getElementById('modalActions').appendChild(payButton);
+            }
+            
+            // Tombol Lunaskan
+            const markPaidButton = document.createElement('button');
+            markPaidButton.textContent = `Lunaskan Sisa Saldo`;
+            markPaidButton.style.backgroundColor = 'var(--warning-color)';
+            markPaidButton.style.color = 'var(--text-dark)';
+            markPaidButton.onclick = () => { markPaid(index); closeDetailModal(); };
+            document.getElementById('modalActions').appendChild(markPaidButton);
+            
+            // Tombol Hapus (hanya untuk transaksi aktif, untuk riwayat dihapus di halaman History)
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = `Hapus Transaksi Aktif`;
+            deleteButton.style.backgroundColor = 'var(--danger-color)';
+            deleteButton.onclick = () => { deleteTransaction(index); closeDetailModal(); };
+            document.getElementById('modalActions').appendChild(deleteButton);
+        }
+
 
         document.getElementById('transactionDetailModal').style.display = 'block';
     }
@@ -1131,7 +1287,7 @@
         }
 
         if (confirm(`Apakah Anda yakin ingin membatalkan pembayaran cicilan terakhir (ke-${tx.paymentHistory.length}) untuk ${tx.person}?`)) {
-            const lastPayment = tx.paymentHistory.pop(); 
+            tx.paymentHistory.pop(); 
 
             if (tx.status === 'lunas') {
                 tx.status = 'aktif';
@@ -1139,7 +1295,7 @@
             }
             
             saveTransactions();
-            alert(`Pembayaran cicilan ke-${lastPayment.installment} untuk ${tx.person} berhasil dibatalkan.`);
+            alert(`Pembayaran cicilan terakhir untuk ${tx.person} berhasil dibatalkan.`);
             refreshAllPagesAndCurrentView();
         }
     }
@@ -1194,6 +1350,7 @@
         const interestRateClean = cleanInterestRate(interestRateInput.value);
 
         const newTransaction = {
+            id: Date.now(), // Tambahkan ID unik
             type: document.getElementById('type').value,
             person: document.getElementById('person').value,
             principal: principalClean, 
@@ -1245,8 +1402,8 @@
         }
 
         if (pageId === 'homePage') {
-            renderBalanceSummary(); // Memperbarui dashboard
-            renderLatestTransactions(); // Menampilkan transaksi terbaru
+            renderBalanceSummary(); 
+            renderLatestTransactions(); 
         } else if (pageId === 'piutangPage') {
             document.getElementById('searchPiutang').value = ''; 
             document.getElementById('sortPiutang').value = 'due_asc'; 
@@ -1260,8 +1417,11 @@
             document.getElementById('sortHistory').value = 'lunas_desc'; 
             filterTransactionList('history');
         } else if (pageId === 'summaryPage') {
-             renderBalanceSummary(); // Memperbarui ringkasan saldo global
+             renderBalanceSummary(); 
         }
+        
+        // Atur ulang scroll ke atas saat navigasi
+        document.querySelector('.container').scrollTop = 0;
         
         if (pageId !== 'formPage') {
             estimateDiv && (estimateDiv.style.display = 'none');
@@ -1294,7 +1454,9 @@
     
     // INISIALISASI APLIKASI
     loadTransactions(); 
+    // Data Migration (Jika ada data lama tanpa status/paymentHistory)
     transactions.forEach(tx => {
+        if (!tx.id) tx.id = Date.now() + Math.floor(Math.random() * 1000); 
         if (!tx.status) {
             tx.status = 'aktif';
             tx.lunasDate = null;
@@ -1321,6 +1483,19 @@
     });
     saveTransactions();
     showPage('homePage'); 
+    
+    // Bind fungsi ke window
+    window.showDetailModal = showDetailModal;
+    window.closeDetailModal = closeDetailModal;
+    window.payInstallment = payInstallment;
+    window.undoPayment = undoPayment;
+    window.markPaid = markPaid;
+    window.deleteTransaction = deleteTransaction;
+    window.filterTransactionList = filterTransactionList;
+    window.exportToCSV = exportToCSV;
+    window.formatInputRupiah = formatInputRupiah;
+    window.updateInstallmentEstimate = updateInstallmentEstimate;
+    window.calculateDueDate = calculateDueDate;
 </script>
 
 </body>
