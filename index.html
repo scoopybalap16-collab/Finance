@@ -3,844 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catatan Piutang & Utang</title>
+    <title>Catatan Piutang & Utang Modern</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <style>
-        /* ---------------------------------- */
-        /* VARIABEL DAN FONT DASAR */
-        /* ---------------------------------- */
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --background-color: #e9ecef;
-            --card-background: #ffffff;
-            --text-color: #333;
-            --text-muted: #666;
-            --border-color: #dee2e6;
-            --header-height: 50px;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100%;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            overflow-x: hidden;
-            font-size: 14px;
-        }
-
-        /* ---------------------------------- */
-        /* HEADER & NAVIGATION */
-        /* ---------------------------------- */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: var(--header-height);
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0 15px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .header h1 {
-            font-size: 1.25em;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .menu-toggle {
-            font-size: 1.6em;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        /* ---------------------------------- */
-        /* SIDE MENU (DRAWER) */
-        /* ---------------------------------- */
-        .side-menu-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1100;
-        }
-
-        .side-menu-content {
-            width: 75%;
-            max-width: 320px;
-            height: 100%;
-            background-color: var(--card-background);
-            position: absolute;
-            top: 0;
-            left: 0;
-            box-shadow: 4px 0 8px rgba(0, 0, 0, 0.3);
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            padding-top: 0;
-        }
-        
-        .side-menu-header {
-             padding: 18px 15px;
-             background-color: var(--primary-color);
-             color: white;
-             font-size: 1.3em;
-             font-weight: bold;
-             margin-bottom: 5px;
-             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 15px;
-            cursor: pointer;
-            color: var(--text-color);
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .menu-item:hover, .menu-item.active {
-            background-color: var(--light-color);
-            color: var(--primary-color);
-            border-left: 4px solid var(--primary-color);
-            padding-left: 11px;
-        }
-        
-        .menu-item i {
-            margin-right: 15px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .menu-footer {
-             position: absolute;
-             bottom: 0;
-             width: 100%;
-             padding: 15px;
-             font-size: 0.8em;
-             text-align: center;
-             color: var(--text-muted);
-             border-top: 1px solid var(--border-color);
-        }
-
-        /* ---------------------------------- */
-        /* MAIN CONTENT & PAGES */
-        /* ---------------------------------- */
-        .main-content {
-            padding-top: var(--header-height);
-            min-height: 100vh; /* FIX: Gunakan min-height untuk konten */
-            position: relative;
-        }
-
-        .page {
-            display: none;
-            padding: 15px;
-            min-height: calc(100vh - var(--header-height));
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* ---------------------------------- */
-        /* HOME PAGE & DASHBOARD */
-        /* ---------------------------------- */
-        .dashboard-section {
-            background-color: var(--card-background);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .dashboard-section h2 {
-            font-size: 1.2em;
-            color: var(--dark-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-
-        .summary-dashboard {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-
-        .summary-card {
-            background-color: var(--light-color);
-            padding: 15px;
-            border-radius: 8px;
-            flex: 1 1 calc(50% - 6px);
-            min-width: 150px;
-            text-align: left;
-            transition: transform 0.1s;
-        }
-        
-        .summary-card:active {
-             transform: scale(0.98);
-        }
-        
-        .summary-card h3 {
-             font-size: 0.9em;
-             color: var(--text-muted);
-             margin: 0 0 5px 0;
-             font-weight: 500;
-        }
-
-        .summary-card p {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin: 0;
-            word-break: break-all;
-        }
-
-        .card-piutang {
-            border-left: 5px solid var(--success-color);
-            background-color: #e6ffed; /* Light green background */
-        }
-        
-        .card-utang {
-            border-left: 5px solid var(--danger-color);
-            background-color: #ffe6e6; /* Light red background */
-        }
-        
-        .card-networth {
-             flex: 1 1 100%;
-             border-left: 5px solid var(--primary-color);
-             margin-top: 5px;
-             background-color: #e6f0ff; /* Light blue background */
-        }
-        
-        .card-networth p {
-            font-size: 1.5em;
-        }
-
-        .chart-container {
-             height: 280px; /* Sedikit lebih tinggi */
-             position: relative;
-        }
-        
-        /* Gaya baru untuk status notifikasi */
-        .notification-status-info {
-            background-color: var(--warning-color);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #ffda6a;
-        }
-        
-        .notification-status-info button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-
-        /* ---------------------------------- */
-        /* LISTS (Piutang, Utang, History) */
-        /* ---------------------------------- */
-        
-        .list-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        
-        .list-controls input[type="text"], .list-controls select {
-             padding: 10px;
-             border: 1px solid var(--border-color);
-             border-radius: 6px;
-             font-size: 0.95em;
-             background-color: var(--card-background);
-        }
-        
-        .list-controls input[type="text"] {
-             flex-grow: 1;
-        }
-
-        .transaction-list-item {
-            display: flex;
-            align-items: center;
-            background-color: var(--card-background);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.15s;
-            border-left: 6px solid transparent;
-        }
-
-        .transaction-list-item:active {
-            transform: scale(0.98);
-        }
-
-        .transaction-list-item.piutang {
-            border-left-color: var(--success-color);
-        }
-
-        .transaction-list-item.utang {
-            border-left-color: var(--danger-color);
-        }
-
-        .avatar-icon {
-            width: 45px;
-            height: 45px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .info-section {
-            flex-grow: 1;
-        }
-        
-        .info-section strong {
-             font-size: 1.15em;
-             display: block;
-             margin-bottom: 3px;
-             color: var(--dark-color);
-        }
-
-        .amount-section {
-            text-align: right;
-            line-height: 1.3;
-            flex-shrink: 0;
-            margin-left: 10px;
-        }
-
-        .remaining-amount {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 3px;
-            word-break: break-all;
-        }
-
-        .due-info {
-            font-size: 0.85em;
-            color: var(--text-muted);
-        }
-        
-        .status-badge {
-             font-size: 0.75em;
-             padding: 4px 8px;
-             border-radius: 12px;
-             font-weight: bold;
-             display: inline-block;
-             margin-top: 5px;
-             text-transform: uppercase;
-        }
-        
-        .status-late {
-             background-color: #f8d7da; /* light red */
-             color: var(--danger-color);
-        }
-        
-        .status-active {
-             background-color: #cce5ff; /* light blue */
-             color: var(--primary-color);
-        }
-        
-        .status-fine {
-             background-color: var(--danger-color); 
-             color: white;
-        }
-
-        /* ---------------------------------- */
-        /* FORM PAGE */
-        /* ---------------------------------- */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 1em;
-            background-color: var(--card-background);
-        }
-        
-        .form-group input[type="number"] {
-             -moz-appearance: textfield;
-        }
-        .form-group input::-webkit-outer-spin-button,
-        .form-group input::-webkit-inner-spin-button {
-             -webkit-appearance: none;
-             margin: 0;
-        }
-
-        .form-info {
-            background-color: #f0f8ff; /* Light info background */
-            color: var(--info-color);
-            border: 1px solid var(--info-color);
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
-
-        button[type="submit"] {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.05em;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            font-weight: 600;
-        }
-
-        button[type="submit"]:active {
-            transform: scale(0.99);
-        }
-
-        /* ---------------------------------- */
-        /* DETAIL MODAL (Pop-up) */
-        /* ---------------------------------- */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            padding-top: 20px;
-        }
-        
-        /* FIX: Tambahkan Flexbox untuk centering */
-        #paymentDateModal.modal {
-             display: none; 
-             align-items: center; 
-             justify-content: center; 
-             padding-top: 0; 
-        }
-
-        .modal-content-detail {
-            background-color: var(--card-background);
-            margin: 15% auto;
-            padding: 25px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 450px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .close-btn {
-            color: var(--text-muted);
-            float: right;
-            font-size: 30px;
-            font-weight: 300;
-            line-height: 20px;
-            transition: color 0.1s;
-        }
-
-        .close-btn:hover,
-        .close-btn:focus {
-            color: var(--danger-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        .modal-title {
-             font-size: 1.3em;
-             font-weight: bold;
-             margin-bottom: 15px;
-             border-bottom: 3px solid var(--primary-color);
-             padding-bottom: 8px;
-             color: var(--primary-color);
-        }
-
-        .modal-detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 1em;
-        }
-        
-        .modal-detail-row:last-of-type {
-             border-bottom: none;
-        }
-        
-        .modal-detail-row span {
-             color: var(--text-muted);
-        }
-        
-        .modal-detail-row strong {
-             font-weight: 600;
-             text-align: right;
-        }
-        
-        .modal-detail-row.fine-info strong {
-             color: var(--danger-color);
-        }
-        
-        .modal-content-detail h3 {
-             font-size: 1.1em;
-             color: var(--dark-color);
-             margin-top: 20px;
-             margin-bottom: 10px;
-        }
-
-        .payment-history-list {
-            max-height: 180px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            background-color: var(--light-color);
-        }
-
-        .payment-history-list div {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px dotted var(--border-color);
-            font-size: 0.9em;
-        }
-        
-        .payment-history-list div:last-child {
-             border-bottom: none;
-        }
-        
-        .modal-actions {
-             margin-top: 25px;
-             display: flex;
-             flex-direction: column;
-             gap: 12px;
-        }
-        
-        .modal-actions button {
-             padding: 12px;
-             border: none;
-             border-radius: 6px;
-             cursor: pointer;
-             transition: background-color 0.2s, transform 0.1s;
-        }
-
-        /* ---------------------------------- */
-        /* PAYMENT DATE MODAL */
-        /* ---------------------------------- */
-        
-        .modal-content-payment {
-             background-color: var(--card-background);
-             padding: 30px;
-             border-radius: 10px;
-             width: 90%;
-             max-width: 380px;
-             text-align: center;
-             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-        }
-        
-        .modal-content-payment h3 {
-             margin-top: 0;
-             font-size: 1.2em;
-             color: var(--primary-color);
-             margin-bottom: 20px;
-        }
-        
-        #paymentAmountDisplay {
-             font-size: 1em;
-             margin-bottom: 20px;
-             padding: 10px;
-             border: 1px dashed var(--success-color);
-             border-radius: 4px;
-             background-color: #f0fff0;
-        }
-        
-        .payment-modal-actions {
-             display: flex;
-             gap: 10px;
-             margin-top: 20px;
-        }
-        
-        .payment-modal-actions button {
-             flex: 1;
-             padding: 12px;
-             font-size: 1em;
-             border-radius: 6px;
-             font-weight: 600;
-             transition: transform 0.1s;
-        }
-        
-        .payment-modal-actions button:active {
-             transform: scale(0.98);
-        }
-        
-        /* ---------------------------------- */
-        /* FAB (Floating Action Button) */
-        /* ---------------------------------- */
-        .fab {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 55px;
-            height: 55px;
-            background-color: var(--success-color);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 55px;
-            font-size: 1.6em;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 900;
-            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s;
-            opacity: 0;
-            transform: scale(0);
-        }
-        
-        .fab.show {
-             opacity: 1;
-             transform: scale(1);
-        }
-        
-        /* ---------------------------------- */
-        /* SUMMARY PAGE */
-        /* ---------------------------------- */
-        .summary-page-content {
-             display: flex;
-             flex-direction: column;
-             gap: 15px;
-        }
-        
-        .summary-block {
-             background-color: var(--card-background);
-             padding: 20px;
-             border-radius: 10px;
-             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .summary-block h3 {
-             font-size: 1.1em;
-             color: var(--primary-color);
-             margin-top: 0;
-             border-bottom: 2px solid var(--border-color);
-             padding-bottom: 8px;
-             margin-bottom: 15px;
-        }
-        
-        .summary-row {
-             display: flex;
-             justify-content: space-between;
-             padding: 7px 0;
-             font-size: 1em;
-             border-bottom: 1px dashed var(--light-color);
-        }
-        
-        .summary-row:last-child {
-             border-bottom: none;
-        }
-        
-        .summary-row span:first-child {
-             color: var(--text-muted);
-        }
-        
-        .summary-row strong {
-             font-weight: 600;
-        }
-        
-        .summary-row.networth {
-             padding-top: 15px;
-             border-top: 2px solid var(--primary-color);
-        }
-        
-        .summary-row.networth strong {
-             font-size: 1.3em;
-        }
-        
-        /* ---------------------------------- */
-        /* BACKUP PAGE */
-        /* ---------------------------------- */
-        .data-section { 
-            margin-top: 20px; 
-            padding: 15px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 8px; 
-            background-color: var(--card-background);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .backup-section { 
-            margin-top: 20px; 
-            padding: 20px; 
-            border: 1px solid var(--primary-color); 
-            border-radius: 8px; 
-            background-color: #e6f0ff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .backup-section h2 { 
-            margin-top: 0; 
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-        
-        .button-group {
-             display: flex;
-             flex-wrap: wrap;
-             gap: 10px;
-             margin-top: 15px;
-        }
-        
-        .button-group button { 
-            flex-grow: 1;
-            background-color: var(--success-color); 
-            color: white; 
-            padding: 12px 15px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.2s, transform 0.1s;
-        }
-        
-        .button-group button:hover { opacity: 0.9; }
-        .button-group button:active { transform: scale(0.99); }
-        
-        #import-file { display: none; }
-        
-        .info { 
-            margin-top: 10px; 
-            padding: 12px; 
-            background-color: var(--warning-color); 
-            border-radius: 4px; 
-            color: var(--dark-color);
-            font-size: 0.95em;
-        }
-        
-        .export-btn { background-color: var(--primary-color) !important; }
-        .import-btn { background-color: var(--info-color) !important; }
-        
-        .mock-data { 
-            background-color: #f8f9fa; 
-            padding: 10px; 
-            border-radius: 4px; 
-            white-space: pre-wrap; 
-            word-break: break-all;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            font-size: 0.8em;
-            color: #555;
-        }
-
-    </style>
+    <meta name="theme-color" content="#4e73df">
 </head>
 <body>
+
+    <div class="side-menu-modal" id="sideMenuModal">
+        <div class="side-menu-content" id="sideMenuContent">
+            <div class="side-menu-header">
+                <h3>Finance Tracker <span class="version-tag">v2.0</span></h3>
+            </div>
+            
+            <div class="menu-item active" data-page="homePage">
+                <i class="fas fa-home"></i> Beranda
+            </div>
+            <div class="menu-item" data-page="activeLoansPage">
+                <i class="fas fa-handshake"></i> Daftar Pinjaman Aktif
+            </div>
+            <div class="menu-item" data-page="historyPage">
+                <i class="fas fa-history"></i> Riwayat Pembayaran (Lunas)
+            </div>
+            <div class="menu-item" data-page="summaryPage">
+                <i class="fas fa-chart-line"></i> Ringkasan Total
+            </div>
+            <div class="menu-item" data-page="backupPage">
+                <i class="fas fa-database"></i> Export & Import Data
+            </div>
+            <div class="menu-item" data-page="formPage">
+                <i class="fas fa-plus-circle"></i> Tambah Catatan Baru
+            </div>
+            <div class="menu-item" data-page="aboutPage">
+                <i class="fas fa-info-circle"></i> Tentang Aplikasi
+            </div>
+            
+            <div class="menu-footer">
+                <p>Status Notifikasi: <span id="notificationStatusText">Memuat...</span></p>
+                <button onclick="requestNotificationPermission()">Aktifkan Izin</button>
+            </div>
+        </div>
+    </div>
 
     <div class="header">
         <div class="menu-toggle" id="menuToggle">
             <i class="fas fa-bars"></i>
         </div>
-        <h1>Catatan Keuangan</h1>
-    </div>
-
-    <div class="side-menu-modal" id="sideMenuModal">
-        <div class="side-menu-content" id="sideMenuContent">
-            <div class="side-menu-header">MENU UTAMA</div>
-            <div class="menu-item active" data-page="homePage">
-                <i class="fas fa-home"></i> Beranda
-            </div>
-            <div class="menu-item" data-page="piutangPage">
-                <i class="fas fa-arrow-circle-up"></i> Daftar Piutang
-            </div>
-            <div class="menu-item" data-page="utangPage">
-                <i class="fas fa-arrow-circle-down"></i> Daftar Utang
-            </div>
-            <div class="menu-item" data-page="formPage">
-                <i class="fas fa-plus-circle"></i> Tambah Transaksi
-            </div>
-            <div class="menu-item" data-page="historyPage">
-                <i class="fas fa-history"></i> Riwayat Lunas
-            </div>
-            <div class="menu-item" data-page="summaryPage">
-                <i class="fas fa-chart-pie"></i> Ringkasan Total
-            </div>
-            <div class="menu-item" data-page="backupPage">
-                <i class="fas fa-database"></i> Backup & Restore Data
-            </div>
-            <div class="menu-item" onclick="exportToCSV()">
-                <i class="fas fa-file-csv"></i> Export Data (CSV)
-            </div>
-            <div class="menu-footer">
-                Versi 1.3 (Denda Majemuk & Cicilan Kumulatif)
-            </div>
-        </div>
+        <h1 id="pageTitle">Beranda</h1>
     </div>
 
     <div class="main-content">
         
         <div class="page active" id="homePage">
-             <div class="notification-status-info">
-                 <i class="fas fa-bell"></i>
-                 <span id="notificationStatusText">Status Notifikasi: Memuat...</span>
-                 <button onclick="requestNotificationPermission()">Aktifkan Izin Notifikasi</button>
-             </div>
             <div class="dashboard-section">
                 <h2>Ringkasan Keuangan Aktif</h2>
                 <div class="summary-dashboard" id="mainDashboard">
@@ -849,185 +65,191 @@
             </div>
 
             <div class="dashboard-section">
-                <h2>Distribusi Total Piutang & Utang (Awal)</h2>
+                <h2>Distribusi Total Pinjaman (Awal)</h2>
                 <div class="chart-container">
-                    <canvas id="piutangChart"></canvas>
+                    <canvas id="loanChart"></canvas>
                 </div>
             </div>
 
             <div class="dashboard-section">
-                <h2>Jatuh Tempo Mendekat (Aktif)</h2>
+                <h2>Jatuh Tempo Mendekat</h2>
                 <div id="latestTransactions">
-                     <p style="text-align: center; color: var(--text-muted);">Tidak ada transaksi aktif.</p>
+                     <p style="text-align: center; color: var(--text-muted);">Tidak ada transaksi aktif yang mendekati jatuh tempo.</p>
                 </div>
             </div>
         </div>
 
-        <div class="page" id="piutangPage">
-            <h2>Daftar Piutang Aktif</h2>
+        <div class="page" id="activeLoansPage">
+            <h2>Daftar Pinjaman Aktif</h2>
             <div class="list-controls">
-                 <input type="text" id="searchPiutang" placeholder="Cari nama..." onkeyup="filterTransactionList('piutang')">
-                 <select id="sortPiutang" onchange="filterTransactionList('piutang')">
-                     <option value="due_asc">Jatuh Tempo (Terdekat)</option>
-                     <option value="amount_desc">Sisa (Terbesar)</option>
-                     <option value="due_desc">Jatuh Tempo (Terjauh)</option>
+                 <input type="text" id="searchLoans" placeholder="Cari nama atau deskripsi..." onkeyup="filterTransactionList('active')">
+                 <select id="filterLoans" onchange="filterTransactionList('active')">
+                     <option value="all">Semua (Piutang & Utang)</option>
+                     <option value="piutang">Hanya Piutang (Klaim)</option>
+                     <option value="utang">Hanya Utang (Kewajiban)</option>
                  </select>
             </div>
-            <div id="piutangList">
-                <p style="text-align: center; color: var(--text-muted);">Tidak ada piutang aktif.</p>
+            <div id="activeLoansList">
+                <p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Memuat data pinjaman aktif...</p>
             </div>
         </div>
 
-        <div class="page" id="utangPage">
-            <h2>Daftar Utang Aktif</h2>
-            <div class="list-controls">
-                 <input type="text" id="searchUtang" placeholder="Cari nama..." onkeyup="filterTransactionList('utang')">
-                 <select id="sortUtang" onchange="filterTransactionList('utang')">
-                     <option value="due_asc">Jatuh Tempo (Terdekat)</option>
-                     <option value="amount_desc">Sisa (Terbesar)</option>
-                     <option value="due_desc">Jatuh Tempo (Terjauh)</option>
-                 </select>
-            </div>
-            <div id="utangList">
-                <p style="text-align: center; color: var(--text-muted);">Tidak ada utang aktif.</p>
-            </div>
-        </div>
-        
         <div class="page" id="historyPage">
             <h2>Riwayat Transaksi Lunas</h2>
             <div class="list-controls">
                  <input type="text" id="searchHistory" placeholder="Cari nama..." onkeyup="filterTransactionList('history')">
                  <select id="sortHistory" onchange="filterTransactionList('history')">
                      <option value="lunas_desc">Tanggal Lunas (Terbaru)</option>
-                     <option value="principal_desc">Pokok (Terbesar)</option>
+                     <option value="principal_desc">Pokok Awal (Terbesar)</option>
                  </select>
             </div>
             <div id="historyList">
-                <p style="text-align: center; color: var(--text-muted);">Tidak ada riwayat lunas.</p>
+                <p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Memuat riwayat lunas...</p>
             </div>
         </div>
         
         <div class="page" id="summaryPage">
             <h2>Ringkasan Total Keuangan</h2>
             <div class="summary-page-content">
-                <div class="summary-block">
+
+                <div class="summary-block card-piutang">
                     <h3>Total Piutang (Klaim)</h3>
                     <div class="summary-row">
-                        <span>Total Awal:</span> 
+                        <span>Total Awal (Pokok + Bunga):</span>
                         <strong id="summaryPiutangAwal">Rp 0</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Sisa Piutang Aktif:</span> 
+                        <span>Sisa Piutang Aktif (Termasuk Denda):</span>
                         <strong style="color: var(--success-color);" id="summaryPiutangSisa">Rp 0</strong>
                     </div>
                 </div>
-                
-                <div class="summary-block">
+
+                <div class="summary-block card-utang">
                     <h3>Total Utang (Kewajiban)</h3>
                     <div class="summary-row">
-                        <span>Total Awal:</span> 
+                        <span>Total Awal (Pokok + Bunga):</span>
                         <strong id="summaryUtangAwal">Rp 0</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Sisa Utang Aktif:</span> 
+                        <span>Sisa Utang Aktif (Termasuk Denda):</span>
                         <strong style="color: var(--danger-color);" id="summaryUtangSisa">Rp 0</strong>
                     </div>
                 </div>
-                
-                <div class="summary-block">
+
+                <div class="summary-block card-networth">
                     <h3>Net Worth (Nilai Bersih)</h3>
                     <div class="summary-row networth">
-                        <span>Net Worth Akhir (Piutang Sisa - Utang Sisa):</span> 
+                        <span>Net Worth Akhir (Piutang Sisa - Utang Sisa):</span>
                         <strong id="summaryNetWorth">Rp 0</strong>
                     </div>
                 </div>
-                
-                <button onclick="exportToCSV()" style="background-color: var(--secondary-color);">
-                     <i class="fas fa-file-csv"></i> Export Semua Data ke CSV
+
+                <button onclick="exportToCSV()" class="export-button">
+                     <i class="fas fa-file-csv"></i> Export Semua Data ke CSV (Excel)
                 </button>
             </div>
         </div>
 
+        <div class="page" id="backupPage">
+             <h2>Backup & Restore Data</h2>
+             <p class="info">Semua data tersimpan lokal. Backup JSON secara berkala untuk keamanan.</p>
+             <div class="summary-dashboard">
+                 <div class="summary-card card-networth">
+                     <h3>Jumlah Transaksi Tersimpan</h3>
+                     <p id="totalTransactionsCount">0 Transaksi</p>
+                 </div>
+                 <div class="summary-card card-networth">
+                     <h3>Tanggal Backup Terakhir</h3>
+                     <p id="lastBackupDate">Belum Ada</p>
+                 </div>
+             </div>
+
+             <div class="backup-section">
+                 <h2>Opsi Data</h2>
+                 <div class="button-group">
+                     <button id="export-btn" class="btn-success"><i class="fas fa-file-download"></i> Backup Data (JSON)</button>
+                     <button id="trigger-import-btn" class="btn-primary"><i class="fas fa-file-upload"></i> Restore Data (JSON)</button>
+                     <input type="file" id="import-file" accept="application/json">
+                     <button onclick="clearAllData()" class="btn-danger"><i class="fas fa-trash-alt"></i> Hapus Semua Data</button>
+                 </div>
+             </div>
+        </div>
 
         <div class="page" id="formPage">
-            <h2>Tambah Transaksi Baru</h2>
+            <h2>Tambah Catatan Baru</h2>
             <form id="transactionForm">
+
                 <div class="form-group">
-                    <label for="type"><i class="fas fa-exchange-alt"></i> Tipe Transaksi:</label>
+                    <label for="type"><i class="fas fa-exchange-alt"></i> Tipe Transaksi</label>
                     <select id="type" required>
-                        <option value="piutang">Piutang (Orang berutang pada Anda)</option>
-                        <option value="utang">Utang (Anda berutang pada orang)</option>
+                        <option value="piutang">Piutang (Saya Memberi Pinjaman/Klaim)</option>
+                        <option value="utang">Utang (Saya Meminjam/Kewajiban)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="person"><i class="fas fa-user"></i> Nama Pihak Kedua:</label>
-                    <input type="text" id="person" required placeholder="Nama orang/perusahaan">
-                </div>
-                
-                <div class="form-group">
-                    <label for="principal"><i class="fas fa-coins"></i> Pokok Pinjaman (Rp):</label>
-                    <input type="text" id="principal" required placeholder="Contoh: 1.000.000" oninput="formatInputRupiah(this); updateInstallmentEstimate();">
+                    <label for="person"><i class="fas fa-user-circle"></i> Nama Pihak Lain</label>
+                    <input type="text" id="person" placeholder="Nama..." required>
                 </div>
 
                 <div class="form-group">
-                    <label for="interestRate"><i class="fas fa-percent"></i> Suku Bunga (%) per Tenor (Flat):</label>
-                    <input type="number" id="interestRate" required value="0" min="0" step="0.01" oninput="updateInstallmentEstimate()">
-                    <div class="form-info">Tulis '0' jika tanpa bunga. Bunga dihitung dari Pokok Pinjaman.</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="installmentsCount"><i class="fas fa-calendar-alt"></i> Tenor/Jumlah Cicilan (Bulan):</label>
-                    <input type="number" id="installmentsCount" required min="1" value="1" oninput="updateInstallmentEstimate(); calculateDueDate();">
-                    <div id="installmentEstimate" class="form-info" style="display: none; margin-top: 10px;"></div> 
+                    <label for="principal"><i class="fas fa-wallet"></i> Pokok Pinjaman (Rp)</label>
+                    <input type="text" id="principal" placeholder="Misal: 1.000.000" oninput="formatInputRupiah(this); updateInstallmentEstimate();" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="startDate"><i class="fas fa-calendar-day"></i> Tanggal Mulai Pinjaman:</label>
-                    <input type="date" id="startDate" required onchange="calculateDueDate()">
-                </div>
-                
-                <div class="form-group form-info">
-                    <label><i class="fas fa-clock"></i> Estimasi Tanggal Jatuh Tempo Akhir:</label>
-                    <strong id="finalDueDateDisplay">Pilih tanggal mulai dan tenor/cicilan.</strong>
+                    <label for="interestRate"><i class="fas fa-percent"></i> Bunga (%) per Periode</label>
+                    <input type="number" id="interestRate" step="0.01" value="0" oninput="updateInstallmentEstimate()" required>
+                    <div class="form-info">Bunga Flat (persen dari Pokok) dikali Tenor. Misal: 1% flat/bulan.</div>
                 </div>
 
-                <button type="submit"><i class="fas fa-save"></i> Catat Transaksi</button>
+                 <div class="form-group">
+                    <label for="installmentsCount"><i class="fas fa-calendar-alt"></i> Tenor / Jumlah Cicilan (Bulan)</label>
+                    <input type="number" id="installmentsCount" value="1" min="1" oninput="updateInstallmentEstimate(); calculateDueDate();" required>
+                    <div class="form-info">Input 1 jika lunas 1x bayar.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate"><i class="fas fa-calendar-day"></i> Tanggal Mulai / Dibuat</label>
+                    <input type="date" id="startDate" oninput="calculateDueDate()" required>
+                    <div class="form-info">Jatuh tempo cicilan akan mengikuti tanggal ini (misal: tgl 15 setiap bulan).</div>
+                </div>
+
+                <div class="form-group estimate-box" id="installmentEstimate" style="display: none;">
+                     </div>
+
+                <div class="form-group">
+                    <label for="finalDueDateDisplay"><i class="fas fa-calendar-check"></i> Estimasi Jatuh Tempo Terakhir</label>
+                    <p id="finalDueDateDisplay" class="due-display-text"></p>
+                </div>
+
+                <button type="submit" class="submit-button"><i class="fas fa-save"></i> Simpan Transaksi Baru</button>
             </form>
         </div>
-        
-        <div class="page" id="backupPage">
-            <h2><i class="fas fa-database"></i> Backup & Restore Data</h2>
-            
-            <div class="data-section">
-                <h3>Status Data Aktif</h3>
-                <p><strong>Status Data Aktif (`${STORAGE_KEY}`):</strong></p>
-                <div id="data-status">Memuat data...</div>
-                <p>Simulasi data yang tersimpan (JSON format):</p>
-                <pre id="current-app-data" class="mock-data"></pre>
-            </div>
 
-            <div class="backup-section">
-                <h2>Fitur Backup & Restore (JSON)</h2>
-                <div class="info">
-                    <strong>Penting:</strong> Fitur ini membuat file **JSON** sebagai *backup* data Anda. Data akan berisi semua Piutang, Utang, dan Riwayat pembayaran Anda.
+        <div class="page" id="aboutPage">
+            <div class="about-section">
+                <h2>Tentang</h2>
+                <p class="info">Aplikasi catatan keuangan dengan fungsi utama sebagai pencatat tentang hutang & piutang, serta menerapkan bunga pinjaman flat dan denda majemuk</p>
+                
+                <div class="about-card">
+                    <h3>Versi Aplikasi</h3>
+                    <p>2.0 - Modern UI/UX & Compounding Fine Logic</p>
                 </div>
-                <div class="button-group" style="margin-top: 15px;">
-                    <button id="export-btn" class="export-btn">⬇️ Export Data JSON</button>
-                    <button id="trigger-import-btn" class="import-btn">⬆️ Import Data JSON</button>
-                    <input type="file" id="import-file" accept="application/json">
+
+                <div class="about-card">
+                    <h3>Pencipta</h3>
+                    <p class="created-by">Created by Eximouse</p>
                 </div>
-                <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 10px;">
-                    File export akan tersimpan dengan nama: CatatanKeuangan_Backup_YYYY-MM-DD.json
-                </p>
             </div>
         </div>
-        </div>
-    
+
+    </div>
+
     <div class="fab" id="fabAddTransaction" onclick="navigateTo('formPage')">
         <i class="fas fa-plus"></i>
     </div>
-    
+
     <div id="transactionDetailModal" class="modal">
         <div class="modal-content-detail">
             <span class="close-btn" onclick="closeDetailModal()">&times;</span>
@@ -1039,1537 +261,26 @@
     
     <div id="paymentDateModal" class="modal">
         <div class="modal-content-payment">
-            <h3>Catat Pembayaran</h3>
-            <div id="paymentAmountDisplay"></div>
+            <h3><i class="fas fa-cash-register"></i> Catat Pembayaran</h3>
+            <div id="paymentAmountDisplay" class="payment-due-box"></div>
             <div class="form-group" style="margin-top: 20px;">
                 <label for="datePaidInput"><i class="fas fa-calendar-check"></i> Tanggal Pembayaran:</label>
                 <input type="date" id="datePaidInput" required>
             </div>
             
             <div class="form-group">
-                <label for="nominalPaidInput"><i class="fas fa-hand-holding-usd"></i> Nominal Dibayar (Isi jika bayar lebih/kurang):</label>
-                <input type="text" id="nominalPaidInput" placeholder="Masukkan jumlah bayar..." oninput="formatInputRupiah(this)">
-                <div class="form-info">Kosongkan jika hanya membayar tagihan (Rp 0 akan otomatis terisi).</div>
+                <label for="nominalPaidInput"><i class="fas fa-hand-holding-usd"></i> Nominal Dibayar:</label>
+                <input type="text" id="nominalPaidInput" placeholder="Masukkan jumlah bayar..." oninput="formatInputRupiah(this)" required>
+                <div class="form-info">Nominal akan otomatis terisi dengan jumlah tagihan. Isi jika bayar lebih/kurang.</div>
             </div>
 
             <div class="payment-modal-actions">
-                <button style="background-color: var(--secondary-color);" onclick="closePaymentModal()">Batal</button>
-                <button id="confirmPaymentBtn" style="background-color: var(--success-color);">Konfirmasi Bayar</button>
+                <button class="btn-secondary" onclick="closePaymentModal()">Batal</button>
+                <button id="confirmPaymentBtn" class="btn-success">Konfirmasi Bayar</button>
             </div>
         </div>
     </div>
 
-
-    <script>
-    // ===================================
-    // VARIABEL GLOBAL DAN KONSTANTA
-    // ===================================
-    let transactions = [];
-    const form = document.getElementById('transactionForm');
-    const principalInput = document.getElementById('principal');
-    const interestRateInput = document.getElementById('interestRate');
-    const installmentsCountInput = document.getElementById('installmentsCount');
-    const startDateInput = document.getElementById('startDate'); 
-    const finalDueDateDisplay = document.getElementById('finalDueDateDisplay'); 
-    const estimateDiv = document.getElementById('installmentEstimate');
-    
-    const detailModal = document.getElementById('transactionDetailModal');
-    const paymentModal = document.getElementById('paymentDateModal');
-    const datePaidInput = document.getElementById('datePaidInput');
-    const nominalPaidInput = document.getElementById('nominalPaidInput'); 
-    const paymentAmountDisplay = document.getElementById('paymentAmountDisplay');
-    const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
-
-    // Variabel state modal
-    let currentTxId = null;
-    let currentPaymentData = { totalDue: 0, cumulativeInstallments: 0, totalFine: 0, installmentsToPay: 0 }; 
-    let piutangChartInstance = null; 
-    
-    const FINE_RATE = 0.05; // 5% per bulan
-    const STORAGE_KEY = 'personalFinanceTracker_v2'; // Kunci LocalStorage Utama
-    
-    // Konstanta Notifikasi
-    const NOTIFICATION_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 jam dalam milidetik
-    let notificationScheduler = null;
-
-
-    // ===================================
-    // 1. MANAJEMEN DATA & LOCAL STORAGE
-    // ===================================
-
-    function loadTransactions() {
-        const storedTransactions = localStorage.getItem(STORAGE_KEY);
-        if (storedTransactions) {
-            try {
-                transactions = JSON.parse(storedTransactions); 
-                // Jika data yang di-load bukan array, inisialisasi sebagai array kosong
-                if (!Array.isArray(transactions)) {
-                    transactions = [];
-                }
-            } catch (e) {
-                console.error("Gagal parse data Local Storage:", e);
-                transactions = [];
-            }
-        }
-    }
-
-    function saveTransactions() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
-            // Perbarui tampilan data status setelah save
-            renderBackupPageData(); 
-        } catch (error) {
-            alert('Gagal menyimpan data lokal. Local Storage mungkin penuh.');
-            console.error(error);
-        }
-    }
-    
-    // ===================================
-    // 2. FUNGSI UTILITAS DATA
-    // ===================================
-
-    function formatInputRupiah(inputElement) {
-        let angka = inputElement.value.replace(/\D/g, ''); 
-        if (!angka || angka === '0') {
-            inputElement.value = '';
-            return;
-        }
-        let formatted = new Intl.NumberFormat('id-ID').format(angka);
-        inputElement.value = formatted;
-    }
-
-    function formatCurrency(amount) {
-        const roundedAmount = Math.round(parseFloat(amount) || 0); 
-        return roundedAmount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    }
-    
-    function cleanInterestRate(input) {
-        return String(input).replace(/,/g, '.').replace(/[^0-9.]/g, ''); 
-    }
-    
-    function cleanPrincipal(input) {
-         return parseFloat(String(input).replace(/\./g, '').replace(/,/g, '')); 
-    }
-    
-    // Hitung estimasi di form
-    function updateInstallmentEstimate() {
-        const principal = cleanPrincipal(principalInput.value) || 0;
-        const ratePercent = parseFloat(cleanInterestRate(interestRateInput.value)) || 0;
-        const tenor = parseInt(installmentsCountInput.value) || 1;
-
-        if (principal > 0 && tenor > 0) {
-            const totals = calculateTotal(principal, ratePercent, tenor);
-            estimateDiv.innerHTML = `Estimasi Cicilan per Bulan: <strong>Rp ${formatCurrency(totals.totalPerInstallment)}</strong><br>Total Akhir (Pokok + Bunga): <strong>Rp ${formatCurrency(totals.totalAmount)}</strong>`;
-            estimateDiv.style.display = 'block';
-        } else {
-            estimateDiv.style.display = 'none';
-        }
-    }
-
-
-    function calculateTotal(principal, rate, installmentsCount) {
-        const principalAmount = parseFloat(principal); 
-        const interestRate = parseFloat(rate) / 100; 
-        const installments = parseInt(installmentsCount);
-        
-        if (isNaN(principalAmount) || isNaN(interestRate) || isNaN(installments) || installments <= 0) {
-            return { totalInterest: 0, totalAmount: 0, totalPerInstallment: 0 };
-        }
-        
-        const totalInterest = principalAmount * interestRate * installments; 
-        const totalAmount = principalAmount + totalInterest;
-        const totalPerInstallment = totalAmount / installments;
-        
-        return {
-            totalInterest: totalInterest,
-            totalAmount: totalAmount,
-            totalPerInstallment: totalPerInstallment,
-        };
-    }
-    
-    function calculateDueDate() {
-        const startDateValue = startDateInput.value;
-        const installments = parseInt(installmentsCountInput.value);
-        
-        if (!startDateValue || installments < 1) {
-            finalDueDateDisplay.textContent = 'Pilih tanggal mulai dan tenor/cicilan.';
-            return '';
-        }
-
-        const startDate = new Date(startDateValue + 'T00:00:00'); 
-        
-        if (isNaN(startDate)) {
-            finalDueDateDisplay.textContent = 'Tanggal mulai tidak valid.';
-            return '';
-        }
-        
-        const finalDueDate = new Date(startDate);
-        const startDay = startDate.getDate();
-        
-        finalDueDate.setMonth(finalDueDate.getMonth() + installments); 
-
-        if (finalDueDate.getDate() !== startDay) {
-             finalDueDate.setDate(0); 
-             if (finalDueDate.getDate() < startDay) {
-                  finalDueDate.setDate(startDay); 
-             } else {
-                  finalDueDate.setDate(0); 
-             }
-        }
-        
-        const formattedDate = finalDueDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-        
-        finalDueDateDisplay.textContent = formattedDate;
-        
-        const year = finalDueDate.getFullYear();
-        const month = String(finalDueDate.getMonth() + 1).padStart(2, '0');
-        const day = String(finalDueDate.getDate()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}`; 
-    }
-    
-    function calculateInstallmentDueDate(tx, installmentIndex) {
-         const dateString = tx.startDate;
-         if (!dateString || installmentIndex <= 0) return null;
-
-         const startDate = new Date(dateString + 'T00:00:00');
-         const startDay = startDate.getDate();
-         
-         const targetMonth = startDate.getMonth() + installmentIndex; 
-         const targetYear = startDate.getFullYear() + Math.floor(targetMonth / 12);
-         const newMonth = targetMonth % 12;
-         
-         let dueDate = new Date(targetYear, newMonth, startDay); 
-         
-         if (dueDate.getMonth() !== newMonth) {
-              dueDate = new Date(targetYear, newMonth + 1, 0); 
-         } 
-         
-         const year = dueDate.getFullYear();
-         const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-         const day = String(dueDate.getDate()).padStart(2, '0');
-         
-         return `${year}-${month}-${day}`; 
-    }
-    
-    function calculateNextDueDate(tx) {
-         const paidCount = tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0; 
-         if (paidCount >= tx.installmentsCount) return null; 
-         
-         return calculateInstallmentDueDate(tx, paidCount + 1); 
-    }
-    
-    function calculateCumulativePayment(tx, currentDateString) {
-        if (tx.status !== 'aktif') return { cumulativeInstallments: 0, totalFine: 0, totalOverdueInstallments: 0, fineDetails: [], remainingPrincipal: 0 };
-        
-        const totals = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount); 
-        const installmentAmount = totals.totalPerInstallment;
-        
-        const paidTotalCount = tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-        
-        let cumulativeInstallments = 0; 
-        let totalFine = 0;              
-        let fineDetails = [];
-        let totalOverdueInstallments = 0; 
-        
-        const currentDate = new Date(currentDateString + 'T00:00:00');
-        currentDate.setHours(0, 0, 0, 0);
-        
-        let firstOverdueDate = null;
-
-        // --- 1. Tentukan Cicilan mana yang SUDAH JATUH TEMPO (Overdue) ---
-        for (let i = paidTotalCount + 1; i <= tx.installmentsCount; i++) {
-            const dueDateString = calculateInstallmentDueDate(tx, i);
-            const dueDate = new Date(dueDateString + 'T00:00:00');
-            dueDate.setHours(0, 0, 0, 0);
-            
-            if (currentDate >= dueDate) {
-                 cumulativeInstallments += installmentAmount;
-                 totalOverdueInstallments++;
-                 if (firstOverdueDate === null) firstOverdueDate = dueDate;
-            } else {
-                 break; 
-            }
-        }
-        
-        // --- 2. Hitung Denda Majemuk ---
-        
-        if (totalOverdueInstallments > 0 && firstOverdueDate !== null) {
-             
-             const dateDiff = currentDate.getTime() - firstOverdueDate.getTime();
-             const daysLate = Math.floor(dateDiff / (1000 * 60 * 60 * 24));
-             const monthsLate = Math.floor(daysLate / 30); 
-             
-             if (monthsLate > 0) {
-                 
-                 let compoundingBalance = cumulativeInstallments;
-                 
-                 for (let i = 1; i <= monthsLate; i++) {
-                     const currentFine = compoundingBalance * FINE_RATE;
-                     
-                     compoundingBalance += currentFine;
-                     totalFine += currentFine;
-                     fineDetails.push({ 
-                         month: i, 
-                         fine: currentFine, 
-                         basis: compoundingBalance - currentFine 
-                     });
-                 }
-             }
-        }
-        
-        const remainingTotalAmount = totals.totalAmount - (paidTotalCount * installmentAmount);
-
-        return {
-            cumulativeInstallments: Math.round(cumulativeInstallments),        
-            totalFine: Math.round(totalFine),                                 
-            totalOverdueInstallments: totalOverdueInstallments,               
-            remainingPrincipal: Math.round(remainingTotalAmount),             
-            fineDetails: fineDetails
-        };
-    }
-    
-    function getFinancialTotals() {
-        let totalPiutangAwal = 0; 
-        let sisaPiutang = 0;      
-        let totalUtangAwal = 0;   
-        let sisaUtang = 0;        
-
-        const todayDate = new Date().toISOString().split('T')[0];
-
-        let chartPiutangAktif = 0;
-        let chartPiutangLunas = 0;
-        let chartUtangAktif = 0;
-        let chartUtangLunas = 0;
-
-
-        transactions.forEach(tx => { 
-            const totals = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount);
-            const initialTotalWithInterest = totals.totalAmount; 
-            
-            let totalRemainingWithFine = 0;
-            
-            if (tx.status === 'aktif') {
-                const cumulativePay = calculateCumulativePayment(tx, todayDate);
-                const totalFine = cumulativePay.totalFine;
-                
-                const remainingTotal = cumulativePay.remainingPrincipal; 
-                totalRemainingWithFine = remainingTotal + totalFine;
-            } 
-            
-            if (tx.type === 'piutang') {
-                totalPiutangAwal += initialTotalWithInterest;
-                if (tx.status === 'aktif') {
-                    sisaPiutang += totalRemainingWithFine; 
-                    chartPiutangAktif += initialTotalWithInterest; 
-                } else {
-                    chartPiutangLunas += initialTotalWithInterest;
-                }
-            } else if (tx.type === 'utang') {
-                totalUtangAwal += initialTotalWithInterest;
-                if (tx.status === 'aktif') {
-                    sisaUtang += totalRemainingWithFine; 
-                    chartUtangAktif += initialTotalWithInterest; 
-                } else {
-                    chartUtangLunas += initialTotalWithInterest; 
-                }
-            }
-        });
-        
-        const netWorthAkhir = sisaPiutang - sisaUtang;
-        
-        const totalAwalPiutang = chartPiutangAktif + chartPiutangLunas;
-        const totalAwalUtang = chartUtangAktif + chartUtangLunas;
-
-        return {
-            totalPiutangAwal: Math.round(totalAwalPiutang), 
-            sisaPiutang: Math.round(sisaPiutang), 
-            totalUtangAwal: Math.round(totalUtangAwal), 
-            sisaUtang: Math.round(sisaUtang),
-            netWorthAkhir: Math.round(netWorthAkhir),
-            piutangAktif: Math.round(chartPiutangAktif), 
-            piutangLunas: Math.round(chartPiutangLunas), 
-            utangAktif: Math.round(chartUtangAktif), 
-            utangLunas: Math.round(chartUtangLunas)
-        };
-    }
-    
-    function getDueStatus(dueDate) {
-        if (!dueDate) return { badge: 'LUNAS', class: 'status-active' };
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-        
-        const due = new Date(dueDate + 'T00:00:00'); 
-        due.setHours(0, 0, 0, 0); 
-
-        const diffTime = due.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        
-        if (diffDays < 0) {
-            return { badge: `TERLAMBAT ${Math.abs(diffDays)} hari`, class: 'status-late' };
-        } else if (diffDays === 0) {
-            return { badge: 'JATUH TEMPO HARI INI', class: 'status-late' }; 
-        } else if (diffDays <= 7) {
-            return { badge: `JATUH TEMPO ${diffDays} hari lagi`, class: 'status-active' };
-        } else {
-            return { badge: 'AKTIF', class: 'status-active' };
-        }
-    }
-    
-    function renderSummaryCards() {
-        const totals = getFinancialTotals();
-        const mainDashboard = document.getElementById('mainDashboard');
-        mainDashboard.innerHTML = `
-            <div class="summary-card card-piutang" onclick="navigateTo('piutangPage')">
-                <h3><i class="fas fa-arrow-circle-up"></i> Sisa Piutang Aktif</h3>
-                <p>Rp ${formatCurrency(totals.sisaPiutang)}</p>
-            </div>
-            <div class="summary-card card-utang" onclick="navigateTo('utangPage')">
-                <h3><i class="fas fa-arrow-circle-down"></i> Sisa Utang Aktif</h3>
-                <p>Rp ${formatCurrency(totals.sisaUtang)}</p>
-            </div>
-            <div class="summary-card card-networth" onclick="navigateTo('summaryPage')">
-                <h3><i class="fas fa-chart-line"></i> Net Worth (Bersih)</h3>
-                <p style="color: ${totals.netWorthAkhir >= 0 ? 'var(--success-color)' : 'var(--danger-color)'};">Rp ${formatCurrency(totals.netWorthAkhir)}</p>
-            </div>
-        `;
-
-        document.getElementById('summaryPiutangAwal').textContent = `Rp ${formatCurrency(totals.totalPiutangAwal)}`;
-        document.getElementById('summaryPiutangSisa').textContent = `Rp ${formatCurrency(totals.sisaPiutang)}`;
-        document.getElementById('summaryUtangAwal').textContent = `Rp ${formatCurrency(totals.totalUtangAwal)}`;
-        document.getElementById('summaryUtangSisa').textContent = `Rp ${formatCurrency(totals.sisaUtang)}`;
-        document.getElementById('summaryNetWorth').textContent = `Rp ${formatCurrency(totals.netWorthAkhir)}`;
-        document.getElementById('summaryNetWorth').style.color = totals.netWorthAkhir >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
-    }
-
-
-    function sortTransactions(a, b, sortValue) {
-        if (sortValue === 'due_asc') {
-            const nextDueA = calculateNextDueDate(a) || '9999-12-31';
-            const nextDueB = calculateNextDueDate(b) || '9999-12-31';
-            return nextDueA.localeCompare(nextDueB);
-        } else if (sortValue === 'due_desc') {
-            const nextDueA = calculateNextDueDate(a) || '0000-01-01';
-            const nextDueB = calculateNextDueDate(b) || '0000-01-01';
-            return nextDueB.localeCompare(nextDueA);
-        } else if (sortValue === 'amount_desc') {
-            const totalsA = calculateTotal(a.principal, a.interestRate, a.installmentsCount);
-            const paidCountA = a.paymentHistory ? a.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-            const remainingA = totalsA.totalPerInstallment * (a.installmentsCount - paidCountA);
-            
-            const totalsB = calculateTotal(b.principal, b.interestRate, b.installmentsCount);
-            const paidCountB = b.paymentHistory ? b.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-            const remainingB = totalsB.totalPerInstallment * (b.installmentsCount - paidCountB);
-            
-            return remainingB - remainingA;
-        } else if (sortValue === 'lunas_desc') {
-            const dateA = a.dateCompleted || '0000-01-01';
-            const dateB = b.dateCompleted || '0000-01-01';
-            return dateB.localeCompare(dateA);
-        } else if (sortValue === 'principal_desc') {
-            return cleanPrincipal(b.principal) - cleanPrincipal(a.principal);
-        }
-        return 0; 
-    }
-
-
-    function renderTransactionList(type, containerId) {
-        const container = document.getElementById(containerId);
-        let listHtml = '';
-        
-        let filteredList;
-        const typeUC = type.charAt(0).toUpperCase() + type.slice(1);
-        
-        if (type === 'history') {
-             filteredList = transactions.filter(tx => tx.status === 'lunas');
-        } else {
-             filteredList = transactions.filter(tx => tx.type === type && tx.status === 'aktif');
-        }
-        
-        const searchQuery = document.getElementById(`search${typeUC}`)?.value.toLowerCase() || '';
-        if (searchQuery) {
-            filteredList = filteredList.filter(tx => tx.person.toLowerCase().includes(searchQuery));
-        }
-        
-        const sortValue = document.getElementById(`sort${typeUC}`)?.value;
-        if (sortValue) {
-            filteredList.sort((a, b) => sortTransactions(a, b, sortValue));
-        }
-
-
-        if (filteredList.length === 0) {
-             container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Tidak ada ${type} ${type === 'history' ? 'yang lunas' : 'aktif'} yang tercatat.</p>`;
-             return;
-        }
-
-        const todayDate = new Date().toISOString().split('T')[0];
-
-        filteredList.forEach(tx => {
-            const nextDueDate = calculateNextDueDate(tx);
-            const dueStatus = getDueStatus(nextDueDate);
-            
-            const paidTotalCount = tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-            
-            const cumulativePay = calculateCumulativePayment(tx, todayDate);
-            const totalFine = cumulativePay.totalFine;
-            const remainingTotal = cumulativePay.remainingPrincipal; 
-            const totalRemainingWithFine = remainingTotal + totalFine; 
-
-            let amountDisplay;
-            let dueInfo;
-            let badge;
-            
-            const nextDueDisplay = nextDueDate ? new Date(nextDueDate + 'T00:00:00').toLocaleDateString('id-ID') : '-';
-            const completedDateDisplay = tx.dateCompleted ? new Date(tx.dateCompleted + 'T00:00:00').toLocaleDateString('id-ID') : '-';
-            
-            if (tx.status === 'aktif') {
-                amountDisplay = `<div class="remaining-amount">Rp ${formatCurrency(totalRemainingWithFine)}</div>`;
-                
-                dueInfo = `<div class="due-info">Cicilan ke ${paidTotalCount + 1} (${tx.installmentsCount}x)</div>
-                           <div class="due-info">Jatuh Tempo: ${nextDueDisplay}</div>`;
-                
-                if (totalFine > 0) {
-                    const dueMonths = cumulativePay.totalOverdueInstallments;
-                    amountDisplay = `<div class="remaining-amount" style="color:var(--danger-color);">Rp ${formatCurrency(totalRemainingWithFine)}</div>`; 
-                    badge = `<span class="status-badge status-fine">DENDA (${dueMonths} CICILAN TERLAMBAT)</span>`;
-                } else {
-                    badge = `<span class="status-badge ${dueStatus.class}">${dueStatus.badge}</span>`;
-                }
-            } else { 
-                amountDisplay = `<div class="remaining-amount" style="color:var(--success-color);">LUNAS</div>`;
-                dueInfo = `<div class="due-info">Pokok: Rp ${formatCurrency(tx.principal)}</div>
-                           <div class="due-info">Lunas: ${completedDateDisplay}</div>`;
-                badge = `<span class="status-badge" style="background-color: #d4edda; color: var(--success-color);">SELESAI</span>`;
-            }
-            
-            const initials = tx.person.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-
-            listHtml += `
-                <div class="transaction-list-item ${tx.type}" data-id="${tx.id}" onclick="showDetailModal('${tx.id}')">
-                    <div class="avatar-icon">${initials}</div>
-                    <div class="info-section">
-                        <strong>${tx.person}</strong>
-                        <p style="margin: 3px 0 0; font-size: 0.9em; color: var(--text-muted);">${tx.type === 'piutang' ? 'MEMBERI PINJAMAN' : 'MENERIMA PINJAMAN'}</p>
-                        ${badge}
-                    </div>
-                    <div class="amount-section">
-                        ${amountDisplay}
-                        ${dueInfo}
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = listHtml;
-    }
-    
-    function renderLatestTransactions() {
-        const latestContainer = document.getElementById('latestTransactions');
-        let activeList = transactions.filter(tx => tx.status === 'aktif');
-        
-        activeList.sort((a, b) => {
-             const nextDueA = calculateNextDueDate(a) || '9999-12-31';
-             const nextDueB = calculateNextDueDate(b) || '9999-12-31';
-             return nextDueA.localeCompare(nextDueB);
-        });
-        
-        const limitedList = activeList.slice(0, 5); 
-
-        if (limitedList.length === 0) {
-             latestContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Tidak ada transaksi aktif.</p>`;
-             return;
-        }
-        
-        let listHtml = '';
-        const todayDate = new Date().toISOString().split('T')[0];
-
-        limitedList.forEach(tx => {
-            const nextDueDate = calculateNextDueDate(tx);
-            const dueStatus = getDueStatus(nextDueDate);
-            
-            const paidTotalCount = tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-            
-            const cumulativePay = calculateCumulativePayment(tx, todayDate);
-            const totalFine = cumulativePay.totalFine;
-            const totalRemainingWithFine = cumulativePay.remainingPrincipal + totalFine;
-
-
-            const initials = tx.person.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-            const nextDueDisplay = nextDueDate ? new Date(nextDueDate + 'T00:00:00').toLocaleDateString('id-ID') : '-';
-            
-            let badge;
-            let amountColor = tx.type === 'piutang' ? 'var(--success-color)' : 'var(--danger-color)';
-            
-            if (totalFine > 0) {
-                 const dueMonths = cumulativePay.totalOverdueInstallments;
-                 badge = `<span class="status-badge status-fine">DENDA (${dueMonths} CICILAN)</span>`;
-                 amountColor = 'var(--danger-color)';
-            } else {
-                 badge = `<span class="status-badge ${dueStatus.class}">${dueStatus.badge}</span>`;
-            }
-
-
-            listHtml += `
-                <div class="transaction-list-item ${tx.type}" data-id="${tx.id}" onclick="showDetailModal('${tx.id}')">
-                    <div class="avatar-icon">${initials}</div>
-                    <div class="info-section">
-                        <strong>${tx.person}</strong>
-                        <p style="margin: 3px 0 0; font-size: 0.9em; color: var(--text-muted);">
-                           ${tx.type === 'piutang' ? 'Piutang' : 'Utang'} | Cicilan ${paidTotalCount + 1} dari ${tx.installmentsCount}
-                        </p>
-                        ${badge}
-                    </div>
-                    <div class="amount-section">
-                        <div class="remaining-amount" style="color: ${amountColor};">Rp ${formatCurrency(totalRemainingWithFine)}</div>
-                        <div class="due-info">Jatuh Tempo: ${nextDueDisplay}</div>
-                    </div>
-                </div>
-            `;
-        });
-        latestContainer.innerHTML = listHtml;
-    }
-    
-    function renderChart() {
-        const totals = getFinancialTotals();
-        const ctx = document.getElementById('piutangChart').getContext('2d');
-        
-        if (piutangChartInstance) {
-            piutangChartInstance.destroy();
-        }
-
-        const chartData = {
-            labels: [
-                `Piutang Aktif (Rp ${formatCurrency(totals.piutangAktif)})`, 
-                `Utang Aktif (Rp ${formatCurrency(totals.utangAktif)})`, 
-                `Piutang Lunas (Rp ${formatCurrency(totals.piutangLunas)})`, 
-                `Utang Lunas (Rp ${formatCurrency(totals.utangLunas)})`
-            ],
-            datasets: [{
-                data: [totals.piutangAktif, totals.utangAktif, totals.piutangLunas, totals.utangLunas],
-                backgroundColor: [
-                    '#28a745', 
-                    '#dc3545', 
-                    '#6fcd7e', 
-                    '#ff7c7c'  
-                ],
-                hoverOffset: 10
-            }]
-        };
-
-        piutangChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: chartData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12 }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label.split(' (')[0] || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed !== null) {
-                                    label += 'Rp ' + formatCurrency(context.parsed);
-                                }
-                                return label;
-                            }
-                        }
-                    },
-                    datalabels: {
-                        formatter: (value, context) => {
-                            if (value === 0) return '';
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = (value / total) * 100;
-                            if (percentage < 3) return ''; 
-                            return percentage.toFixed(1) + '%';
-                        },
-                        color: '#fff',
-                        font: { weight: 'bold', size: 10 }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-    }
-
-    function navigateTo(pageId) {
-        document.querySelectorAll('.page').forEach(page => {
-            page.classList.remove('active');
-        });
-        document.getElementById(pageId).classList.add('active');
-        
-        document.querySelectorAll('#sideMenuContent .menu-item').forEach(item => {
-             item.classList.remove('active');
-             if (item.getAttribute('data-page') === pageId) {
-                 item.classList.add('active');
-             }
-        });
-
-        const fab = document.getElementById('fabAddTransaction');
-        if (pageId === 'homePage') {
-            fab.classList.add('show');
-        } else {
-            fab.classList.remove('show');
-        }
-
-        reRenderActivePage(pageId);
-        
-        closeSideMenu();
-        
-        if(pageId !== 'homePage') {
-            history.pushState({page: pageId}, pageId, `#${pageId}`);
-        } else {
-             history.pushState({page: 'homePage'}, 'homePage', '#homePage');
-        }
-    }
-    
-    function reRenderActivePage(pageId) {
-        if (pageId === 'homePage') {
-            renderSummaryCards();
-            renderLatestTransactions();
-            renderChart();
-            updateNotificationStatusDisplay(); 
-        } else if (pageId === 'piutangPage') {
-             renderTransactionList('piutang', 'piutangList');
-        } else if (pageId === 'utangPage') {
-             renderTransactionList('utang', 'utangList');
-        } else if (pageId === 'historyPage') {
-             renderTransactionList('history', 'historyList');
-        } else if (pageId === 'summaryPage') {
-            renderSummaryCards(); 
-        } else if (pageId === 'backupPage') {
-            renderBackupPageData();
-        }
-    }
-    
-    function filterTransactionList(type) {
-         renderTransactionList(type, `${type}List`);
-    }
-
-    function openSideMenu() {
-        sideMenuModal.style.display = 'block';
-        setTimeout(() => {
-            sideMenuContent.style.transform = 'translateX(0)';
-        }, 10);
-    }
-
-    function closeSideMenu() {
-        sideMenuContent.style.transform = 'translateX(-100%)';
-        setTimeout(() => {
-            sideMenuModal.style.display = 'none';
-        }, 300);
-    }
-
-    // ===================================
-    // 3. FUNGSI BACKUP DAN RESTORE BARU
-    // ===================================
-    
-    // Fungsi untuk menampilkan status data di halaman backup
-    function renderBackupPageData() {
-        const dataStatusEl = document.getElementById('data-status');
-        const currentDataEl = document.getElementById('current-app-data');
-        
-        const storedDataRaw = localStorage.getItem(STORAGE_KEY);
-        
-        if (transactions && transactions.length > 0) {
-            const piutangCount = transactions.filter(t => t.type === 'piutang').length;
-            const utangCount = transactions.filter(t => t.type === 'utang').length;
-            dataStatusEl.innerHTML = `Data ditemukan! Total Transaksi: <strong>${transactions.length}</strong> | Piutang: ${piutangCount} | Utang: ${utangCount}`;
-            currentDataEl.textContent = storedDataRaw; // Menampilkan raw JSON string
-        } else {
-            dataStatusEl.textContent = 'Data transaksi tidak ditemukan di Local Storage atau data kosong.';
-            currentDataEl.textContent = '[]';
-        }
-    }
-
-
-    // --- FUNGSI EXPORT DATA (MEMBUAT FILE BACKUP) ---
-    function exportData() {
-        const dataStr = localStorage.getItem(STORAGE_KEY);
-        
-        if (!dataStr || dataStr === '[]') {
-            alert('Tidak ada data aktif yang dapat di-export!');
-            return;
-        }
-
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        
-        // Membuat nama file yang dinamis
-        const date = new Date().toISOString().slice(0, 10);
-        const filename = `CatatanKeuangan_Backup_${date}.json`;
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        alert(`Data berhasil di-export sebagai: ${filename}`);
-    }
-
-    // --- FUNGSI IMPORT DATA (MEMULIHKAN DARI FILE BACKUP) ---
-    
-    function handleImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (file.type !== 'application/json') {
-            alert('Format file tidak didukung. Harap pilih file JSON (.json).');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                
-                // Pastikan data yang diimpor adalah Array
-                if (Array.isArray(importedData)) {
-                    
-                    const confirmRestore = confirm(
-                        `Anda yakin ingin memulihkan data? Data Anda saat ini (${transactions.length} transaksi) akan ditimpa dengan data dari file backup (${importedData.length} transaksi).`
-                    );
-                    
-                    if (confirmRestore) {
-                        transactions = importedData; // Timpa data lama dengan data baru
-                        saveTransactions(); // Simpan ke Local Storage
-                        
-                        alert('Data berhasil di-import dan dipulihkan! Halaman akan dimuat ulang untuk merefresh semua data.');
-                        // Muat ulang halaman untuk memastikan semua list dan chart ter-refresh
-                        location.reload(); 
-                    }
-                } else {
-                    alert('Gagal memulihkan data. Struktur file JSON tidak valid (bukan Array transaksi).');
-                }
-            } catch (error) {
-                alert('Gagal memproses file. Pastikan file bukan korup dan berformat JSON yang benar.');
-                console.error('Import error:', error);
-            }
-        };
-
-        reader.readAsText(file);
-        // Reset input file agar event 'change' dapat dipicu lagi jika file yang sama dipilih
-        event.target.value = null; 
-    }
-
-
-    // ===================================
-    // 4. FUNGSI FORM & MODAL
-    // ===================================
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const principalClean = cleanPrincipal(principalInput.value);
-        const rateClean = cleanInterestRate(interestRateInput.value); 
-        const installments = parseInt(installmentsCountInput.value);
-        const finalDueDate = calculateDueDate(); 
-
-        if (principalClean <= 0 || rateClean < 0 || installments <= 0 || !finalDueDate) {
-            alert('Silakan isi semua kolom dengan nilai yang valid (Pokok > 0, Bunga >= 0, Cicilan > 0, Tanggal Valid).');
-            return;
-        }
-
-        const newTransaction = {
-            id: Date.now().toString(),
-            type: document.getElementById('type').value,
-            person: document.getElementById('person').value,
-            principal: principalClean, 
-            startDate: document.getElementById('startDate').value,
-            interestRate: rateClean,
-            installmentsCount: installments,
-            status: 'aktif',
-            dateCompleted: null,
-            paymentHistory: []
-        };
-
-        transactions.unshift(newTransaction);
-        saveTransactions();
-        
-        alert(`Transaksi ${newTransaction.type.toUpperCase()} dengan ${newTransaction.person} berhasil dicatat!`); 
-        form.reset();
-        principalInput.value = ''; 
-        interestRateInput.value = '0';
-        installmentsCountInput.value = '1';
-        finalDueDateDisplay.textContent = 'Pilih tanggal mulai dan tenor/cicilan.';
-        estimateDiv.style.display = 'none';
-        
-        reRenderAllLists(); 
-        navigateTo('homePage'); 
-    });
-    
-
-    function showDetailModal(id) {
-        const tx = transactions.find(t => t.id === id);
-        if (!tx) {
-             alert('Error: Transaksi tidak ditemukan atau ID tidak valid.');
-             return;
-        }
-        
-        detailModal.dataset.txId = id; 
-
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        const modalActions = document.getElementById('modalActions');
-        
-        const totals = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount); 
-        
-        const paidTotalCount = tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0;
-        const remainingInstallments = tx.installmentsCount - paidTotalCount;
-        const nextDueDate = calculateNextDueDate(tx);
-        
-        const todayDate = new Date().toISOString().split('T')[0];
-        const cumulativePay = calculateCumulativePayment(tx, todayDate);
-        const cumulativeInstallmentsDue = cumulativePay.cumulativeInstallments; 
-        const totalFine = cumulativePay.totalFine;
-        const dueMonths = cumulativePay.totalOverdueInstallments; 
-        
-        const remainingPrincipal = cumulativePay.remainingPrincipal; 
-        const totalRemainingWithFine = remainingPrincipal + totalFine;
-        
-        
-        let amountToPay = 0;
-        let installmentsToPay = 0;
-        
-        if (remainingInstallments > 0) {
-            if (dueMonths > 0) {
-                amountToPay = cumulativeInstallmentsDue + totalFine;
-                installmentsToPay = dueMonths;
-            } else {
-                amountToPay = totals.totalPerInstallment;
-                installmentsToPay = 1;
-            }
-        } else {
-             amountToPay = 0;
-             installmentsToPay = 0;
-        }
-        
-        currentPaymentData = {
-             totalDue: Math.round(amountToPay),
-             cumulativeInstallments: cumulativeInstallmentsDue,
-             totalFine: totalFine,
-             installmentsToPay: installmentsToPay 
-        };
-        
-        const nextDueDisplay = nextDueDate ? new Date(nextDueDate + 'T00:00:00').toLocaleDateString('id-ID') : '-';
-        
-
-        modalTitle.innerHTML = `<i class="fas fa-info-circle"></i> ${tx.type === 'piutang' ? 'Piutang' : 'Utang'} dengan ${tx.person}`;
-        
-        let historyHtml = tx.paymentHistory && tx.paymentHistory.length > 0
-            ? tx.paymentHistory.map((p, index) => {
-                const isLast = index === tx.paymentHistory.length - 1;
-                const deleteButton = isLast && tx.status === 'aktif'
-                    ? `<i class="fas fa-undo" style="color: var(--danger-color); cursor: pointer; font-size: 0.9em; margin-left: 10px;" onclick="cancelLastPayment('${tx.id}'); event.stopPropagation();" title="Batalkan Pembayaran Terakhir"></i>`
-                    : '';
-                
-                const paidCountDisplay = p.installmentsPaid && p.installmentsPaid > 1 ? ` (${p.installmentsPaid}x)` : '';
-                
-                const totalAmountPaid = (p.amount || 0) + (p.fine || 0); 
-                let amountDisplay = `Rp ${formatCurrency(totalAmountPaid)}`;
-                if (p.fine && p.fine > 0) {
-                     amountDisplay = `Rp ${formatCurrency(totalAmountPaid)} <span style="color: var(--danger-color); font-size: 0.8em;">(Termasuk Denda Rp ${formatCurrency(p.fine)})</span>`;
-                }
-
-                return `
-                    <div>
-                        <span>Bayar ke-${tx.paymentHistory.length - index} ${paidCountDisplay} (${new Date(p.date + 'T00:00:00').toLocaleDateString('id-ID')})</span>
-                        <strong>${amountDisplay}${deleteButton}</strong>
-                    </div>
-                `;
-              }).join('')
-            : '<p style="text-align: center; font-size: 0.9em; color: var(--text-muted);">Belum ada riwayat pembayaran.</p>';
-        
-        let fineRow = '';
-        if (totalFine > 0) {
-            
-            const fineDetailsList = cumulativePay.fineDetails.map(detail => `
-                <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--text-muted); padding: 3px 0; border-bottom: 1px dotted #ccc;">
-                    <span>Denda Bulan ke-${detail.month} (Basis: Rp ${formatCurrency(detail.basis)}):</span> 
-                    <strong>Rp ${formatCurrency(detail.fine)}</strong>
-                </div>
-            `).join('');
-
-            fineRow = `
-                <div style="padding: 10px 0;">
-                    <h3 style="color: var(--danger-color); border-bottom: none; font-size: 1.05em; margin-bottom: 5px;"><i class="fas fa-exclamation-triangle"></i> Detail Keterlambatan & Denda (${(FINE_RATE * 100)}%/bln)</h3>
-                    <div class="modal-detail-row fine-info">
-                        <span>Tagihan Cicilan Tertunggak (${dueMonths}x):</span>
-                        <strong>+ Rp ${formatCurrency(cumulativeInstallmentsDue)}</strong>
-                    </div>
-                    <div class="modal-detail-row fine-info">
-                        <span>Total Akumulasi Denda:</span> 
-                        <strong>+ Rp ${formatCurrency(totalFine)}</strong>
-                    </div>
-                    <div style="margin-top: 10px; padding: 10px; border: 1px dashed var(--danger-color); border-radius: 4px; background-color: #fef0f0;">
-                         <h4 style="font-size: 0.9em; margin: 0 0 5px 0; color: var(--danger-color);">Rincian Denda Majemuk:</h4>
-                         ${fineDetailsList || '<p style="font-size: 0.8em; color: var(--text-muted); text-align: center; margin: 0;">Keterlambatan belum mencapai 1 bulan penuh (Tanpa Denda).</p>'}
-                    </div>
-                </div>
-            `;
-        }
-
-
-        modalContent.innerHTML = `
-            <div class="modal-detail-row"><span>Status:</span> <strong>${tx.status.toUpperCase()}</strong></div>
-            <div class="modal-detail-row"><span>Pokok Pinjaman:</span> <strong>Rp ${formatCurrency(tx.principal)}</strong></div>
-            <div class="modal-detail-row"><span>Total dengan Bunga (${tx.interestRate}% Flat):</span> <strong>Rp ${formatCurrency(totals.totalAmount)}</strong></div>
-            <div class="modal-detail-row"><span>Tenor/Cicilan:</span> <strong>${tx.installmentsCount} Bulan</strong></div>
-            <div class="modal-detail-row"><span>Cicilan per Bulan:</span> <strong>Rp ${formatCurrency(totals.totalPerInstallment)}</strong></div>
-            
-            ${fineRow}
-            
-            <hr style="margin: 10px 0; border-color: var(--border-color);">
-
-            <div class="modal-detail-row" style="font-size: 1.15em; font-weight: bold; color: ${tx.type === 'piutang' ? 'var(--success-color)' : 'var(--danger-color)'};">
-                <span>Sisa Total Pinjaman (Termasuk Denda):</span> <strong>Rp ${formatCurrency(totalRemainingWithFine)}</strong>
-            </div>
-            ${tx.status === 'aktif' ? `
-                <div class="modal-detail-row"><span>Sisa Cicilan Belum Dibayar:</span> <strong>${remainingInstallments} dari ${tx.installmentsCount}</strong></div>
-                <div class="modal-detail-row"><span>Jatuh Tempo Cicilan Berikut:</span> <strong>${nextDueDisplay}</strong></div>
-            ` : ''}
-            
-            <h3><i class="fas fa-list-alt"></i> Riwayat Pembayaran (${tx.paymentHistory ? tx.paymentHistory.length : 0}x)</h3>
-            <div class="payment-history-list">${historyHtml}</div>
-        `;
-
-        modalActions.innerHTML = '';
-        if (tx.status === 'aktif') {
-            if (remainingInstallments > 0) {
-                 modalActions.innerHTML += `<button style="background-color: var(--success-color);" onclick="openPaymentModal('${tx.id}')">Catat Pembayaran Tagihan (Rp ${formatCurrency(currentPaymentData.totalDue)})</button>`;
-            } else {
-                 modalActions.innerHTML += `<p style="text-align: center; color: var(--success-color); font-weight: bold; padding: 10px;">Semua cicilan sudah dilunasi secara hitungan, namun status masih AKTIF. Harap hapus atau ubah status secara manual jika perlu.</p>`;
-            }
-            modalActions.innerHTML += `<button style="background-color: var(--danger-color);" onclick="deleteTransaction('${tx.id}')">Hapus Transaksi</button>`;
-        } else {
-             modalActions.innerHTML += `<p style="text-align: center; color: var(--success-color); font-weight: bold; padding: 10px;">Transaksi ini sudah LUNAS pada ${new Date(tx.dateCompleted + 'T00:00:00').toLocaleDateString('id-ID')}.</p>`;
-             modalActions.innerHTML += `<button style="background-color: var(--danger-color);" onclick="deleteTransaction('${tx.id}')">Hapus Transaksi (Riwayat)</button>`;
-        }
-        
-        detailModal.style.display = 'block';
-    }
-    
-    function closeDetailModal() {
-        document.getElementById('transactionDetailModal').style.display = 'none';
-        detailModal.dataset.txId = ''; 
-    }
-    
-    function openPaymentModal(id) {
-        currentTxId = id;
-        
-        const tx = transactions.find(t => t.id === currentTxId);
-        if (!tx) return;
-        
-        const totalAmountToPay = currentPaymentData.totalDue;
-        const installmentsToPay = currentPaymentData.installmentsToPay;
-        const totalFine = currentPaymentData.totalFine;
-        
-        let displayHtml = `Tagihan yang harus dibayar saat ini adalah: <strong style="color: var(--success-color); font-size: 1.4em;">Rp ${formatCurrency(totalAmountToPay)}</strong>`;
-        
-        if (installmentsToPay > 1) {
-            displayHtml += `<br><span style="color: var(--primary-color); font-weight: 600;">Ini akan melunasi **${installmentsToPay} cicilan** tertunggak.</span>`;
-        } 
-        
-        if (totalFine > 0) {
-            displayHtml += `<br><span style="color: var(--danger-color); font-weight: 600;">Termasuk denda sebesar Rp ${formatCurrency(totalFine)}</span>`;
-        }
-        
-        if (totalAmountToPay <= 0) {
-             displayHtml = `<span style="color: var(--primary-color);">Tidak ada tagihan yang harus dibayar saat ini (Rp 0).</span>`;
-        }
-
-        paymentAmountDisplay.innerHTML = displayHtml;
-        datePaidInput.value = new Date().toISOString().split('T')[0]; 
-        
-        nominalPaidInput.value = formatCurrency(totalAmountToPay);
-        
-        paymentModal.style.display = 'flex'; 
-    }
-    
-    function closePaymentModal() {
-        paymentModal.style.display = 'none';
-        nominalPaidInput.value = ''; 
-        
-        if (detailModal.dataset.txId) {
-             showDetailModal(detailModal.dataset.txId);
-        }
-    }
-    
-    confirmPaymentBtn.addEventListener('click', function() {
-        const tx = transactions.find(t => t.id === currentTxId);
-        if (!tx) {
-             alert('Error: Transaksi tidak ditemukan.');
-             return;
-        }
-
-        const datePaid = datePaidInput.value;
-        const nominalPaidClean = cleanPrincipal(nominalPaidInput.value) || 0; 
-        
-        if (!datePaid) {
-            alert('Tanggal pembayaran harus diisi.');
-            return;
-        }
-        
-        if (nominalPaidClean <= 0) {
-             alert('Nominal pembayaran harus lebih dari Rp 0.');
-             return;
-        }
-
-        const installmentAmount = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount).totalPerInstallment;
-        
-        let totalPaid = nominalPaidClean;
-        let remainingPayment = totalPaid;
-        let totalFinePaid = 0;
-        let installmentsCovered = 0;
-        
-        const todayDate = new Date().toISOString().split('T')[0];
-        const cumulativePay = calculateCumulativePayment(tx, todayDate);
-        
-        // 1. Bayar Denda (Jika Ada)
-        if (cumulativePay.totalFine > 0) {
-            const fineToPay = Math.min(cumulativePay.totalFine, remainingPayment);
-            totalFinePaid = fineToPay;
-            remainingPayment -= fineToPay;
-        }
-        
-        // 2. Bayar Cicilan Tertunggak (Jika Ada)
-        if (cumulativePay.cumulativeInstallments > 0 && remainingPayment > 0) {
-            const dueInstallmentsValue = cumulativePay.cumulativeInstallments;
-            
-            const tertunggakCovered = Math.min(
-                cumulativePay.totalOverdueInstallments,
-                Math.floor(remainingPayment / installmentAmount) 
-            );
-            
-            if (tertunggakCovered > 0) {
-                const amountToCover = tertunggakCovered * installmentAmount;
-                remainingPayment -= amountToCover;
-                installmentsCovered += tertunggakCovered;
-            }
-        }
-        
-        // 3. Bayar Cicilan Berikutnya (Belum Jatuh Tempo)
-        if (remainingPayment > 0) {
-             const remaining = tx.installmentsCount - (tx.paymentHistory ? tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0) : 0);
-             const nextInstallmentsCovered = Math.min(
-                 remaining - installmentsCovered, 
-                 Math.floor(remainingPayment / installmentAmount)
-             );
-             
-             if (nextInstallmentsCovered > 0) {
-                 const amountToCover = nextInstallmentsCovered * installmentAmount;
-                 remainingPayment -= amountToCover;
-                 installmentsCovered += nextInstallmentsCovered;
-             }
-        }
-
-        if (installmentsCovered === 0) {
-             alert(`Pembayaran Rp ${formatCurrency(totalPaid)} tidak cukup untuk melunasi 1 cicilan (Rp ${formatCurrency(installmentAmount)}) setelah membayar denda Rp ${formatCurrency(totalFinePaid)}.`);
-             return;
-        }
-        
-        const amountToRecord = totalPaid - remainingPayment - totalFinePaid; 
-        
-        recordPayment(currentTxId, amountToRecord, totalFinePaid, installmentsCovered, datePaid);
-    });
-
-    function recordPayment(id, amountCovered, fineAmount, installmentsCovered, datePaid) {
-        const tx = transactions.find(t => t.id === id);
-        if (!tx || tx.status !== 'aktif') return;
-        
-        tx.paymentHistory.push({
-            date: datePaid,
-            amount: amountCovered, 
-            fine: fineAmount,
-            installmentsPaid: installmentsCovered 
-        });
-
-        let totalPaidCount = tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0);
-        
-        if (totalPaidCount >= tx.installmentsCount) {
-            tx.status = 'lunas';
-            tx.dateCompleted = datePaid; 
-            alert(`Transaksi ${tx.person} LUNAS! Total cicilan dicover: ${totalPaidCount}.`);
-        } else {
-            alert(`Pembayaran berhasil dicatat! Dicover: **${installmentsCovered}** cicilan. Sisa ${tx.installmentsCount - totalPaidCount} cicilan.`);
-        }
-
-        saveTransactions();
-        
-        closePaymentModal();
-        reRenderAllLists();
-    }
-    
-    function cancelLastPayment(id) {
-        const tx = transactions.find(t => t.id === id);
-        if (!tx || !tx.paymentHistory || tx.paymentHistory.length === 0) {
-            alert('Tidak ada pembayaran aktif yang dapat dibatalkan.');
-            return;
-        }
-
-        const lastPayment = tx.paymentHistory[tx.paymentHistory.length - 1];
-        const installmentsCancelled = lastPayment.installmentsPaid || 1;
-        const totalAmountCancelled = (lastPayment.amount || 0) + (lastPayment.fine || 0);
-        
-        if (!confirm(`Konfirmasi pembatalan pembayaran terakhir? Aksi ini akan membatalkan **${installmentsCancelled} cicilan** senilai Rp ${formatCurrency(totalAmountCancelled)}.`)) return;
-
-        tx.paymentHistory.pop(); 
-        
-        const totalPaidCount = tx.paymentHistory.reduce((sum, p) => sum + (p.installmentsPaid || 1), 0);
-        
-        if (tx.status === 'lunas' && totalPaidCount < tx.installmentsCount) {
-            tx.status = 'aktif';
-            tx.dateCompleted = null;
-        }
-        
-        saveTransactions();
-        alert('Pembayaran cicilan terakhir berhasil dibatalkan. Status transaksi diaktifkan kembali.');
-        
-        closeDetailModal();
-        reRenderAllLists(); 
-        setTimeout(() => showDetailModal(id), 300); 
-    }
-    
-    function deleteTransaction(id) {
-        const tx = transactions.find(t => t.id === id);
-        if (!tx) return;
-        
-        if (!confirm(`Apakah Anda yakin ingin menghapus permanen transaksi ${tx.type} dengan ${tx.person} (Status: ${tx.status.toUpperCase()})? Aksi ini tidak dapat dibatalkan.`)) return;
-
-        transactions = transactions.filter(t => t.id !== id);
-        saveTransactions();
-        alert('Transaksi berhasil dihapus.');
-        closeDetailModal();
-        reRenderAllLists();
-    }
-    
-    // ===================================
-    // 5. FUNGSI NOTIFIKASI OTOMATIS BARU
-    // ===================================
-    
-    // 5.1 Meminta Izin Notifikasi
-    function requestNotificationPermission() {
-        if (!("Notification" in window)) {
-            console.error("Browser tidak mendukung notifikasi.");
-            updateNotificationStatusDisplay("Browser tidak mendukung Notifikasi Web. Fitur dinonaktifkan.", 'danger');
-            return;
-        }
-        
-        Notification.requestPermission().then(permission => {
-            updateNotificationStatusDisplay(`Status Izin: ${permission.toUpperCase()}`, permission === 'granted' ? 'success' : 'warning');
-            if (permission === 'granted') {
-                startNotificationScheduler();
-            } else if (permission === 'denied') {
-                alert('Anda menolak izin notifikasi. Fitur notifikasi otomatis tidak akan berfungsi.');
-            }
-        });
-    }
-    
-    // 5.2 Mengirim Notifikasi
-    function sendNotification(title, body, isSilent) {
-        if (Notification.permission === "granted") {
-            const options = {
-                body: body,
-                icon: 'https://img.icons8.com/color/48/000000/two-credit-cards.png', 
-                badge: 'https://img.icons8.com/color/48/000000/badge.png', 
-                silent: isSilent,
-                vibrate: isSilent ? [] : [200, 100, 200], 
-                renotify: true, 
-                tag: 'debt-due-alert' 
-            };
-            
-            new Notification(title, options);
-        }
-    }
-    
-    // 5.3 Logika Utama Pengecekan dan Pengiriman
-    function checkAndSendNotifications() {
-        if (Notification.permission !== "granted") {
-            console.log("Notifikasi tidak dikirim: Izin ditolak atau belum diberikan.");
-            return;
-        }
-        
-        const now = new Date();
-        const currentHour = now.getHours();
-        const todayDate = now.toISOString().split('T')[0];
-        
-        // Logika Mode Malam (00:00:00 hingga 05:59:59)
-        const isNightMode = currentHour >= 0 && currentHour < 6;
-        
-        let dueTransactions = [];
-
-        transactions.forEach(tx => {
-            if (tx.status !== 'aktif') return;
-
-            const nextDueDate = calculateNextDueDate(tx);
-            if (!nextDueDate) return;
-            
-            const dueStatus = getDueStatus(nextDueDate);
-            
-            // Pemicu: Jatuh Tempo HARI INI atau TERLAMBAT
-            if (dueStatus.badge === 'JATUH TEMPO HARI INI' || dueStatus.class === 'status-late') {
-                
-                const cumulativePay = calculateCumulativePayment(tx, todayDate);
-                const totalDue = cumulativePay.cumulativeInstallments + cumulativePay.totalFine;
-                
-                if (totalDue > 0) {
-                    dueTransactions.push({
-                        type: tx.type,
-                        person: tx.person,
-                        total: totalDue,
-                        statusText: dueStatus.badge,
-                        dueMonths: cumulativePay.totalOverdueInstallments
-                    });
-                }
-            }
-        });
-
-        if (dueTransactions.length > 0) {
-            dueTransactions.forEach(item => {
-                const typeText = item.type === 'piutang' ? 'Piutang (Klaim)' : 'Utang (Kewajiban)';
-                const statusType = item.statusText.includes('TERLAMBAT') || item.statusText.includes('HARI INI') ? 'PENTING' : 'PERINGATAN';
-                
-                let title = `🔔 ${statusType}: ${item.statusText} ${typeText}!`;
-                let body = `Tagihan ${item.person} sebesar Rp ${formatCurrency(item.total)}.`;
-                
-                if (item.dueMonths > 0) {
-                    body += ` (${item.dueMonths}x Cicilan Tertunggak + Denda)`;
-                }
-                
-                sendNotification(title, body, isNightMode);
-            });
-            console.log(`[Notifikasi Otomatis] Dikirim: ${dueTransactions.length} transaksi. Mode Malam: ${isNightMode ? 'Ya (Silent)' : 'Tidak (Bersuara)'}`);
-        } else {
-             console.log("[Notifikasi Otomatis] Tidak ada tagihan yang Jatuh Tempo/Terlambat.");
-        }
-    }
-
-    // 5.4 Penjadwal (Set Interval 6 Jam)
-    function startNotificationScheduler() {
-        if (notificationScheduler) {
-            clearInterval(notificationScheduler); // Hentikan jadwal lama jika ada
-        }
-        
-        // Panggil pertama kali saat dimulai
-        checkAndSendNotifications(); 
-        
-        // Penjadwalan berulang (simulasi 4x24 jam)
-        notificationScheduler = setInterval(() => {
-            checkAndSendNotifications();
-        }, NOTIFICATION_INTERVAL_MS);
-        
-        console.log(`[Notifikasi Otomatis] Penjadwal diaktifkan. Interval: ${NOTIFICATION_INTERVAL_MS / 1000 / 60 / 60} jam.`);
-    }
-    
-    // 5.5 Update Tampilan Status di Home
-    function updateNotificationStatusDisplay(status = null, type = null) {
-        const statusElement = document.getElementById('notificationStatusText');
-        const statusContainer = statusElement.closest('.notification-status-info');
-        const button = statusContainer.querySelector('button');
-
-        const currentPermission = Notification.permission;
-        
-        if (status) {
-            statusElement.innerHTML = `<i class="fas fa-bell"></i> ${status}`;
-        } else if (currentPermission === 'granted') {
-             statusElement.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success-color);"></i> **Aktif.** Pengecekan tagihan dijadwalkan setiap 6 jam.`;
-             statusContainer.style.backgroundColor = '#d4edda'; // Light Green
-             statusContainer.style.color = '#155724';
-             button.style.display = 'none';
-             startNotificationScheduler();
-        } else if (currentPermission === 'denied') {
-             statusElement.innerHTML = `<i class="fas fa-times-circle" style="color: var(--danger-color);"></i> **Ditolak.** Notifikasi dinonaktifkan oleh pengguna.`;
-             statusContainer.style.backgroundColor = '#f8d7da'; // Light Red
-             statusContainer.style.color = '#721c24';
-             button.textContent = 'Minta Izin Ulang';
-             button.style.display = 'inline-block';
-             if (notificationScheduler) clearInterval(notificationScheduler);
-        } else { // default/prompt
-             statusElement.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i> **Belum Diizinkan.** Klik tombol untuk mengaktifkan peringatan tagihan.`;
-             statusContainer.style.backgroundColor = '#fff3cd'; // Light Yellow
-             statusContainer.style.color = '#856404';
-             button.textContent = 'Aktifkan Izin Notifikasi';
-             button.style.display = 'inline-block';
-        }
-    }
-
-
-    // ===================================
-    // 6. FUNGSI UTAMA & INITIALIZATION
-    // ===================================
-    
-    function reRenderAllLists() {
-        const activePageId = document.querySelector('.page.active')?.id || 'homePage'; 
-        reRenderActivePage(activePageId);
-    }
-
-    function exportToCSV() {
-        if (transactions.length === 0) {
-            alert('Tidak ada data untuk diexport.');
-            return;
-        }
-
-        let csv = 'ID,Tipe,Orang,Pokok (Rp),Tgl Mulai,Bunga (%),Tenor (Bulan),Total Akhir (Rp),Sisa Aktif (Rp - Termasuk Denda),Status,Tgl Lunas,Riwayat Pembayaran\n';
-
-        transactions.forEach(tx => {
-            const totals = calculateTotal(tx.principal, tx.interestRate, tx.installmentsCount);
-            
-            const todayDate = new Date().toISOString().split('T')[0];
-            const cumulativePay = calculateCumulativePayment(tx, todayDate);
-            const totalRemainingWithFine = cumulativePay.remainingPrincipal + cumulativePay.totalFine;
-            
-            const paymentDetails = tx.paymentHistory 
-                ? tx.paymentHistory.map((p, i) => {
-                     const paidInstallments = p.installmentsPaid || 1; 
-                     const totalPaid = (p.amount || 0) + (p.fine || 0); 
-                     const fineInfo = p.fine && p.fine > 0 ? `+Denda Rp${Math.round(p.fine)}` : '';
-                     return `Bayar ${paidInstallments}x: Rp${Math.round(totalPaid)} (${p.date})${fineInfo}`;
-                  }).join('; ')
-                : '';
-
-            const row = [
-                tx.id,
-                tx.type,
-                `"${tx.person.replace(/"/g, '""')}"`, 
-                cleanPrincipal(tx.principal),
-                tx.startDate,
-                tx.interestRate,
-                tx.installmentsCount,
-                Math.round(totals.totalAmount),
-                Math.round(totalRemainingWithFine), 
-                tx.status,
-                tx.dateCompleted || '',
-                `"${paymentDetails.replace(/"/g, '""')}"`
-            ].map(item => (typeof item === 'string' && item.includes(',') ? `"${item}"` : item)).join(','); 
-            
-            csv += row + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        if (link.download !== undefined) { 
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", "catatan_hutang_piutang_export_" + new Date().toISOString().split('T')[0] + ".csv");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-
-    
-    function handleBackKey(event) {
-        if (event.key === 'Escape' || event.type === 'backbutton') {
-            
-            if (event.type === 'backbutton') event.preventDefault(); 
-            
-            if (paymentModal.style.display === 'flex') {
-                closePaymentModal();
-                return; 
-            } 
-            
-            else if (detailModal.style.display === 'block') {
-                closeDetailModal();
-                return; 
-            } 
-            
-            else if (sideMenuModal.style.display === 'block') {
-                closeSideMenu();
-                return; 
-            }
-            
-            const activePageId = document.querySelector('.page.active')?.id;
-            if (activePageId && activePageId !== 'homePage') {
-                 navigateTo('homePage');
-            } else {
-                 if (confirm("Apakah Anda yakin ingin keluar dari aplikasi?")) {
-                     if (typeof navigator.app !== 'undefined' && typeof navigator.app.exitApp === 'function') {
-                         navigator.app.exitApp(); 
-                     } else {
-                     }
-                 }
-            }
-        }
-    }
-    
-
-    // Event listener untuk menutup modal jika mengklik di luar konten
-    detailModal.addEventListener('click', function(e) {
-        if (e.target.id === 'transactionDetailModal') {
-            closeDetailModal();
-        }
-    });
-    
-    paymentModal.addEventListener('click', function(e) {
-        if (e.target.id === 'paymentDateModal') {
-            closePaymentModal();
-        }
-    });
-    
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadTransactions();
-        calculateDueDate(); 
-
-        // Event Menu Samping
-        document.getElementById('menuToggle').addEventListener('click', openSideMenu);
-        document.getElementById('sideMenuModal').addEventListener('click', (e) => {
-            if (e.target.id === 'sideMenuModal') {
-                closeSideMenu();
-            }
-        });
-        
-        document.querySelectorAll('#sideMenuContent .menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const pageId = item.getAttribute('data-page');
-                if (pageId) navigateTo(pageId);
-            });
-        });
-        
-        // Setup Event Listener Backup/Restore
-        document.getElementById('export-btn').addEventListener('click', exportData);
-        document.getElementById('trigger-import-btn').addEventListener('click', () => {
-            document.getElementById('import-file').click();
-        });
-        document.getElementById('import-file').addEventListener('change', handleImport);
-        
-        
-        // Handle navigasi via hash URL
-        window.addEventListener('popstate', function(event) {
-             closeSideMenu(); 
-             
-             const hash = window.location.hash.replace('#', '');
-             const targetPage = hash || 'homePage';
-             
-             if (document.getElementById(targetPage)) {
-                 navigateTo(targetPage); 
-             }
-        });
-
-        // Handle Back Button pada perangkat (PWA/Cordova)
-        if (typeof document.addEventListener === 'function') {
-            document.addEventListener('backbutton', handleBackKey, false);
-        }
-        document.addEventListener('keydown', handleBackKey); 
-
-        const initialPage = window.location.hash.replace('#', '') || 'homePage';
-        navigateTo(initialPage);
-        
-        // Initialize Notification Status and Scheduler
-        updateNotificationStatusDisplay();
-    });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
