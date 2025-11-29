@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#4481eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2382/2382461.png">
+    
+    <title>Finansial Pro</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <meta name="google-adsense-account" content="ca-pub-4170035550920357">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170035550920357" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="loading-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-body); z-index:9999; display:flex; justify-content:center; align-items:center;">
+        <i class="fas fa-circle-notch fa-spin text-primary" style="font-size:3rem;"></i>
+    </div>
+
+    <div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-body); z-index:9998; display:none; flex-direction:column; align-items:center; justify-content:center; padding:30px;">
+        <div class="balance-card" style="width:100%; max-width:350px; text-align:center;">
+            <h1>FinPro</h1>
+            <p>Kelola uangmu dengan bijak.</p>
+            <button id="btn-google-login" class="btn-primary mt-20" style="background:white; color:#333;">
+                <i class="fab fa-google"></i> Masuk dengan Google
+            </button>
+            <p id="login-status" class="mt-10 text-sm"></p>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div>
+            <small class="text-muted">Halo, Bos!</small>
+            <h2>Ringkasan</h2>
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-adjust"></i></button>
+    </div>
+
+    <main class="app-container">
+        
+        <div id="install-prompt">
+            <div class="flex-between">
+                <div>
+                    <strong>Install Aplikasi</strong>
+                    <div class="text-muted text-sm">Akses lebih cepat & offline.</div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-xs" onclick="dismissInstall()">Nanti</button>
+                    <button class="btn-xs text-primary" onclick="installApp()" style="border-color:var(--primary)">Install</button>
+                </div>
+            </div>
+        </div>
+
+        <section id="page-home" class="page active">
+            <div class="balance-card">
+                <div class="wallet-container-scroll mb-20">
+                    <div id="wallet-list" style="display:flex; gap:10px;"></div>
+                </div>
+                <small style="opacity:0.8">Total Kekayaan</small>
+                <h1 id="main-balance">Rp 0</h1>
+                <div class="balance-row">
+                    <div><i class="fas fa-arrow-down text-green"></i> Masuk: <span id="main-income">0</span></div>
+                    <div><i class="fas fa-arrow-up text-red"></i> Keluar: <span id="main-expense">0</span></div>
+                </div>
+            </div>
+
+            <div class="ad-slot">
+                <small style="display:block; font-size:0.6rem; color:#ccc; margin-bottom:5px;">Advertisement</small>
+                <ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-fs+3n+7a-ag-4h" data-ad-client="ca-pub-4170035550920357" data-ad-slot="6949327399"></ins> 
+            </div>
+
+            <div class="card">
+                <div class="flex-between mb-20">
+                    <h3>Pengeluaran per Kategori</h3>
+                    <i class="fas fa-chart-pie text-primary"></i>
+                </div>
+                <div style="position:relative; height:250px;">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Tren 6 Bulan</h3>
+                <div style="position:relative; height:150px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <div style="height:100px;"></div>
+        </section>
+
+        <section id="page-budget" class="page">
+            <div class="card" style="padding:10px; display:flex; align-items:center; gap:10px; margin-top:20px;">
+                <i class="fas fa-search text-muted" style="margin-left:10px;"></i>
+                <input type="text" id="budget-search" placeholder="Cari transaksi..." onkeyup="renderBudget()" style="margin:0; border:none; background:transparent;">
+            </div>
+
+            <div class="ad-slot" style="margin: 10px 0;">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4170035550920357" data-ad-slot="1369506733" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            </div>
+
+            <div id="budget-list" class="mt-20"></div>
+            <div style="height:100px;"></div>
+        </section>
+
+        <section id="page-settings" class="page">
+            <div class="card">
+                <h3>Pengaturan</h3>
+                <div class="setting-item">
+                    <span>Tema Gelap</span>
+                    <button class="btn-xs" onclick="toggleTheme()">Switch</button>
+                </div>
+                <div class="setting-item" id="btn-install-app" style="display:none;">
+                    <span>Install Aplikasi</span>
+                    <button class="btn-xs text-primary" onclick="installApp()">Install</button>
+                </div>
+                <div class="setting-item">
+                    <span>Backup JSON</span>
+                    <button class="btn-xs" onclick="downloadBackup()">Simpan</button>
+                </div>
+                <div class="setting-item">
+                    <span>Akun</span>
+                    <button class="btn-xs btn-danger" onclick="logoutUser()">Keluar</button>
+                </div>
+                <div class="mt-20 text-center">
+                    <a href="privacy.html" class="text-muted text-sm" style="text-decoration:none;">Kebijakan Privasi</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="toast-container" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:10000; width:90%; max-width:400px;"></div>
+
+    <div class="fab-wrapper">
+        <button class="fab-main" onclick="openModal('modal-budget')"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="navTo('page-home')"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="#" class="nav-item" onclick="navTo('page-budget')"><i class="fas fa-wallet"></i><span>Budget</span></a>
+        <a href="#" class="nav-item" onclick="navTo('page-settings')"><i class="fas fa-cog"></i><span>Akun</span></a>
+    </nav>
+
+    <div class="modal-overlay" id="modal-budget">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tambah Transaksi</h3>
+                <i class="fas fa-times close-icon" onclick="closeModal('modal-budget')"></i>
+            </div>
+            
+            <div style="background:var(--bg-input); padding:5px; border-radius:12px; display:flex; margin-bottom:20px;">
+                <input type="radio" name="b-type" id="t-out" value="expense" checked hidden onchange="onBudgetTypeChange()">
+                <label for="t-out" style="flex:1; text-align:center; padding:10px; border-radius:10px; cursor:pointer;" class="type-opt">Pengeluaran</label>
+                
+                <input type="radio" name="b-type" id="t-in" value="income" hidden onchange="onBudgetTypeChange()">
+                <label for="t-in" style="flex:1; text-align:center; padding:10px; border-radius:10px; cursor:pointer;" class="type-opt">Pemasukan</label>
+                
+                <style>
+                    input:checked + label { background:var(--bg-card); color:var(--primary); font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+                </style>
+            </div>
+
+            <input type="text" inputmode="numeric" class="money-input input-lg" id="b-amount" placeholder="Rp 0">
+            
+            <label class="text-muted text-sm mb-10" style="display:block;">Pilih Kategori:</label>
+            <div id="category-grid" class="category-grid"></div>
+            <input type="hidden" id="b-category-id">
+
+            <div class="mb-20">
+                <input type="text" id="b-desc" placeholder="Catatan (Opsional)">
+                <div style="display:flex; gap:10px;">
+                    <input type="date" id="b-date" style="flex:1;">
+                    <select id="b-wallet" style="flex:1;"></select>
+                </div>
+            </div>
+
+            <input type="hidden" id="b-id">
+            <button class="btn-primary" onclick="saveBudget()">Simpan</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        window.firebaseLib = { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence };
+    </script>
+    
+    <script type="module" src="js/main.js"></script>
+    <script src="sw-register.js"></script>
+</body>
+</html>
